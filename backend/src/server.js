@@ -2,11 +2,21 @@ import express from "express";
 import { ENV } from "./libs/env.js";
 import path from "path";
 import { connectDB } from "./libs/db.js";
+import cors from 'cors'
+import {serve} from 'inngest/express'
+import { inngest } from "./libs/inngest.js";
 
 const app = express();
 
 const PORT = ENV.PORT;
-const __dirname = path.resolve();
+const __dirname = path.resolve(); 
+
+//middleware=
+app.use(express.json())
+app.use(cors({
+  origin:ENV.CLIENT_URL,credentials:true //server allows our browser to include cookies on req
+}))
+app.use("/api/inngest",serve({client:inngest,functions}))
 
 app.get("/books", (req, res) => {
   res.send("this is the books end point");
