@@ -36,6 +36,7 @@ const syncUser = inngest.createFunction(
       } else {
         console.warn("⚠️ User created but Stream.io sync failed (check API keys)");
       }
+      //todo: send welcome email to user
     } catch (streamError) {
       console.error("❌ Error syncing user to Stream.io:", streamError);
       // Continue even if Stream fails - user is already in database

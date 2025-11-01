@@ -8,6 +8,7 @@ import { inngest,functions } from "./libs/inngest.js";
 import { clerkMiddleware } from "@clerk/express";
 import { protectRoute } from "./middlewares/protectroute.js";
 import chatRoutes from "./routes/chat.routes.js";
+import sessionRoutes from "./routes/session.routes.js";
 
 const app = express();
 
@@ -24,7 +25,9 @@ app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()
 
 app.use("/api/inngest",serve({client:inngest,functions}))
 
-app.use("/api/chat",protectRoute,chatRoutes)
+app.use("/api/chat",chatRoutes)
+app.use('/api/session',sessionRoutes)
+
 
 app.get("/books", (req, res) => {
   res.send("this is the books end point");
