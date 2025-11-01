@@ -17,8 +17,38 @@ const __dirname = path.resolve();
 
 //middleware=
 app.use(express.json())
+
+// CORS configuration - allow multiple origins for dev and production
+const allowedOrigins = [
+  "http://localhost:5173", // Local development
+  "https://evalio-3cqz4.sevalla.app", // Production frontend
+  ENV.CLIENT_URL, // From environment variable
+].filter(Boolean); // Remove any undefined values
+
 app.use(cors({
-  origin: ENV.CLIENT_URL || "http://localhost:5173", // Default to Vite dev server
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list or contains localhost
+    if (allowedOrigins.includes(origin) || origin.includes("localhost") || origin.includes("sevalla.app")) {
+      callback(null, true);
+    } else {
+      // Allow if CLIENT_URL is set and matches
+      if (ENV.CLIENT_URL) {
+        try {
+          const clientHost = new URL(ENV.CLIENT_URL).hostname;
+          if (origin.includes(clientHost)) {
+            return callback(null, true);
+          }
+        } catch (e) {
+          // Invalid URL, continue
+        }
+      }
+      // Default: allow the request
+      callback(null, true);
+    }
+  },
   credentials: true //server allows our browser to include cookies on req
 }))
 app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()

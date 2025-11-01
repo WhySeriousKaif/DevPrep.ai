@@ -33,7 +33,7 @@ function Navbar() {
           {/* PROBLEMS PAGE LINK */}
           <Link
             to={"/problems"}
-            className={`px-4 py-2.5 rounded-lg transition-all duration-200 
+            className={`px-4 py-2.5 rounded-xl transition-all duration-200 
               ${
                 isActive("/problems")
                   ? "bg-primary text-primary-content"
@@ -51,7 +51,7 @@ function Navbar() {
           {/* DASHBORD PAGE LINK */}
           <Link
             to={"/dashboard"}
-            className={`px-4 py-2.5 rounded-lg transition-all duration-200 
+            className={`px-4 py-2.5 rounded-xl transition-all duration-200 
               ${
                 isActive("/dashboard")
                   ? "bg-primary text-primary-content"

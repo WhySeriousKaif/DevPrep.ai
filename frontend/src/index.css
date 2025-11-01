@@ -1,5 +1,70 @@
 @import "tailwindcss";
 @plugin "daisyui"{
     themes: all;
-    
+}
+
+/* Make all buttons rounded */
+.btn {
+  border-radius: 1rem !important;
+}
+
+.btn-sm {
+  border-radius: 0.75rem !important;
+}
+
+.btn-lg {
+  border-radius: 1.25rem !important;
+}
+
+/* Make all cards rounded */
+.card {
+  border-radius: 1.5rem !important;
+}
+
+.card-body {
+  border-radius: 1.5rem !important;
+}
+
+/* Make stats rounded */
+.stats {
+  border-radius: 1.5rem !important;
+}
+
+.stat {
+  border-radius: 1.5rem !important;
+}
+
+/* Make all div sections with borders rounded */
+div[class*="border"] {
+  border-radius: 1rem;
+}
+
+/* Make badges more rounded */
+.badge {
+  border-radius: 0.75rem !important;
+}
+
+/* Make modals rounded */
+.modal-box {
+  border-radius: 1.5rem !important;
+}
+
+.modal {
+  border-radius: 1.5rem !important;
+}
+
+/* Make selects and inputs rounded */
+.select,
+.input {
+  border-radius: 0.75rem !important;
+}
+
+/* Make alerts rounded */
+.alert {
+  border-radius: 1rem !important;
+}
+
+/* Make nav links rounded */
+nav a[class*="rounded"] {
+  border-radius: 0.75rem !important;
 }

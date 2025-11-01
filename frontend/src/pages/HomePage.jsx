@@ -98,16 +98,16 @@ function HomePage() {
             </div>
 
             {/* STATS */}
-            <div className="stats stats-vertical lg:stats-horizontal bg-base-100 shadow-lg">
-              <div className="stat">
+            <div className="stats stats-vertical lg:stats-horizontal bg-base-100 shadow-lg rounded-2xl">
+              <div className="stat rounded-2xl">
                 <div className="stat-value text-primary">10K+</div>
                 <div className="stat-title">Active Users</div>
               </div>
-              <div className="stat">
+              <div className="stat rounded-2xl">
                 <div className="stat-value text-secondary">50K+</div>
                 <div className="stat-title">Sessions</div>
               </div>
-              <div className="stat">
+              <div className="stat rounded-2xl">
                 <div className="stat-value text-accent">99.9%</div>
                 <div className="stat-title">Uptime</div>
               </div>

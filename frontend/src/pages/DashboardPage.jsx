@@ -49,13 +49,13 @@ function DashboardPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-base-300">
+      <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
         <Navbar />
         <WelcomeSection onCreateSession={() => setShowCreateModal(true)} />
 
         {/* Grid layout */}
-        <div className="container mx-auto px-6 pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="container mx-auto px-4 md:px-6 pb-12 max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
             <StatsCards
               activeSessionsCount={activeSessions.length}
               recentSessionsCount={recentSessions.length}
@@ -67,7 +67,9 @@ function DashboardPage() {
             />
           </div>
 
-          <RecentSessions sessions={recentSessions} isLoading={loadingRecentSessions} />
+          <div className="mt-4 lg:mt-5">
+            <RecentSessions sessions={recentSessions} isLoading={loadingRecentSessions} />
+          </div>
         </div>
       </div>
 
