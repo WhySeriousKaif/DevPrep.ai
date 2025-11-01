@@ -9,16 +9,15 @@ import { clerkMiddleware } from "@clerk/express";
 import { protectRoute } from "./middlewares/protectroute.js";
 import chatRoutes from "./routes/chat.routes.js";
 import sessionRoutes from "./routes/session.routes.js";
+import interviewRoutes from "./routes/interview.routes.js";
 
 const app = express();
 
 const PORT = ENV.PORT;
 const __dirname = path.resolve(); 
 
-//middleware=
-app.use(express.json())
-
-// CORS configuration - allow multiple origins for dev and production
+// CORS configuration - MUST come before other middleware
+// Allow multiple origins for dev and production
 const allowedOrigins = [
   "http://localhost:5173", // Local development
   "https://evalio-3cqz4.sevalla.app", // Production frontend
@@ -51,6 +50,11 @@ app.use(cors({
   },
   credentials: true //server allows our browser to include cookies on req
 }))
+
+// Body parsing - Increase size limit for large audio recordings (50MB)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()
 
 
@@ -58,6 +62,7 @@ app.use("/api/inngest",serve({client:inngest,functions}))
 
 app.use("/api/chat",chatRoutes)
 app.use('/api/session',sessionRoutes)
+app.use('/api/interview',interviewRoutes)
 
 
 app.get("/books", (req, res) => {

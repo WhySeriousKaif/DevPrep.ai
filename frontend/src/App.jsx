@@ -7,6 +7,9 @@ import DashboardPage from "./pages/DashboardPage";
 import ProblemPage from "./pages/ProblemPage";
 import ProblemsPage from "./pages/ProblemsPage";
 import SessionPage from "./pages/SessionPage";
+import AIInterviewPage from "./pages/AIInterviewPage";
+import InterviewSessionPage from "./pages/InterviewSessionPage";
+import InterviewResultsPage from "./pages/InterviewResultsPage";
 
 function App() {
   const { isSignedIn, isLoaded } = useUser();
@@ -23,6 +26,9 @@ function App() {
         <Route path="/problems" element={isSignedIn ? <ProblemsPage /> : <Navigate to={"/"} />} />
         <Route path="/problem/:id" element={isSignedIn ? <ProblemPage /> : <Navigate to={"/"} />} />
         <Route path="/session/:id" element={isSignedIn ? <SessionPage /> : <Navigate to={"/"} />} />
+        <Route path="/ai-interview" element={isSignedIn ? <AIInterviewPage /> : <Navigate to={"/"} />} />
+        <Route path="/interview/:id" element={isSignedIn ? <InterviewSessionPage /> : <Navigate to={"/"} />} />
+        <Route path="/interview/:id/results" element={isSignedIn ? <InterviewResultsPage /> : <Navigate to={"/"} />} />
       </Routes>
 
       <Toaster toastOptions={{ duration: 3000 }} />
