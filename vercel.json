@@ -1,3 +1,28 @@
+
+[nodemon] 3.1.10
+[nodemon] to restart at any time, enter `rs`
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,mjs,cjs,json
+[nodemon] starting `node src/server.js`
+node:internal/modules/esm/resolve:275
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/mdkaif/Desktop/ stack mern prpject/Talent-IQ/backend/src/models/User.js' imported from /Users/mdkaif/Desktop/ stack mern prpject/Talent-IQ/backend/src/libs/inngest.js
+    at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+    at moduleResolve (node:internal/modules/esm/resolve:860:10)
+    at defaultResolve (node:internal/modules/esm/resolve:984:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:685:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:634:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:617:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:273:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:135:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///Users/mdkaif/Desktop/%20stack%20mern%20prpject/Talent-IQ/backend/src/models/User.js'
+}
+
+Node.js v22.14.0
+[nodemon] app crashed - waiting for file changes before starting...
 {
   "buildCommand": "npm run build",
   "outputDirectory": "frontend/dist",
