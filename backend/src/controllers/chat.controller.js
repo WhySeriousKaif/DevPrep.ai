@@ -7,6 +7,9 @@ import { chatClient } from "../libs/stream.js";
  */
 export const getStreamToken=async(req,res)=>{
     try {
+        if (!chatClient) {
+            return res.status(503).json({error:"Stream.io is not configured. Please set STREAM_API_KEY and STREAM_API_SECRET environment variables."});
+        }
         //use clerkId not mongodb _id as it is the unique identifier for the user in the database
         const user=req.user;
         const token=await chatClient.createToken(user.clerkId);

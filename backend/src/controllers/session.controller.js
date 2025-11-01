@@ -19,22 +19,29 @@ export async function createSession(req, res) {
     // create session in db
     const session = await Session.create({ problem, difficulty, host: userId, callId });
 
-    // create stream video call 
-    await streamClient.video.call("default", callId).getOrCreate({
-      data: {
+    // create stream video call (if Stream is configured)
+    if (streamClient) {
+      await streamClient.video.call("default", callId).getOrCreate({
+        data: {
+          created_by_id: clerkId,
+          custom: { problem, difficulty, sessionId: session._id.toString() },
+        },
+      });
+    } else {
+      console.warn("⚠️ Stream streamClient not initialized. Video call not created.");
+    }
+
+    // chat messaging (if Stream is configured)
+    if (chatClient) {
+      const channel = chatClient.channel("messaging", callId, {
+        name: `${problem} Session`,
         created_by_id: clerkId,
-        custom: { problem, difficulty, sessionId: session._id.toString() },
-      },
-    });
-
-    // chat messaging
-    const channel = chatClient.channel("messaging", callId, {
-      name: `${problem} Session`,
-      created_by_id: clerkId,
-      members: [clerkId],
-    });
-
-    await channel.create();
+        members: [clerkId],
+      });
+      await channel.create();
+    } else {
+      console.warn("⚠️ Stream chatClient not initialized. Chat channel not created.");
+    }
 
     res.status(201).json({ session });
   } catch (error) {
@@ -118,8 +125,13 @@ export async function joinSession(req, res) {
     session.participant = userId;
     await session.save();
 
-    const channel = chatClient.channel("messaging", session.callId);
-    await channel.addMembers([clerkId]);
+    // Add participant to chat channel (if Stream is configured)
+    if (chatClient) {
+      const channel = chatClient.channel("messaging", session.callId);
+      await channel.addMembers([clerkId]);
+    } else {
+      console.warn("⚠️ Stream chatClient not initialized. Participant not added to chat.");
+    }
 
     res.status(200).json({ session });
   } catch (error) {
@@ -147,13 +159,21 @@ export async function endSession(req, res) {
       return res.status(400).json({ message: "Session is already completed" });
     }
 
-    // delete stream video call
-    const call = streamClient.video.call("default", session.callId);
-    await call.delete({ hard: true });
+    // delete stream video call (if Stream is configured)
+    if (streamClient) {
+      const call = streamClient.video.call("default", session.callId);
+      await call.delete({ hard: true });
+    } else {
+      console.warn("⚠️ Stream streamClient not initialized. Video call not deleted.");
+    }
 
-    // delete stream chat channel
-    const channel = chatClient.channel("messaging", session.callId);
-    await channel.delete();
+    // delete stream chat channel (if Stream is configured)
+    if (chatClient) {
+      const channel = chatClient.channel("messaging", session.callId);
+      await channel.delete();
+    } else {
+      console.warn("⚠️ Stream chatClient not initialized. Chat channel not deleted.");
+    }
 
     session.status = "completed";
     await session.save();

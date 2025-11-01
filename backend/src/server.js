@@ -18,7 +18,8 @@ const __dirname = path.resolve();
 //middleware=
 app.use(express.json())
 app.use(cors({
-  origin:ENV.CLIENT_URL,credentials:true //server allows our browser to include cookies on req
+  origin: ENV.CLIENT_URL || "http://localhost:5173", // Default to Vite dev server
+  credentials: true //server allows our browser to include cookies on req
 }))
 app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()
 
@@ -49,8 +50,13 @@ app.get("/", (req, res) => {
 });
 
 // Catch-all route to serve React app for any non-API routes
-// Using "/{*any}" for Express 5 compatibility (matches all paths except root)
-app.get("/{*any}", (req, res) => {
+// Exclude /api routes - they should be handled above
+app.use((req, res, next) => {
+  // If it's an API route, don't serve the React app
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: "API route not found" });
+  }
+  // Otherwise serve the React app
   res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
 });
 
