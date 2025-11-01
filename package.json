@@ -17,5 +17,8 @@
     "url": "https://github.com/WhySeriousKaif/Talent-IQ/issues"
   },
   "homepage": "https://github.com/WhySeriousKaif/Talent-IQ#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@clerk/express": "^1.7.43"
+  }
 }

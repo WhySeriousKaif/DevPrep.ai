@@ -5,6 +5,8 @@ import { connectDB } from "./libs/db.js";
 import cors from 'cors'
 import {serve} from 'inngest/express'
 import { inngest,functions } from "./libs/inngest.js";
+import { clerkMiddleware } from "@clerk/express";
+import { protectRoute } from "./middlewares/protectroute.js";
 
 const app = express();
 
@@ -17,10 +19,18 @@ app.use(cors({
   origin:ENV.CLIENT_URL,credentials:true //server allows our browser to include cookies on req
 }))
 app.use("/api/inngest",serve({client:inngest,functions}))
+app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()
 
 app.get("/books", (req, res) => {
   res.send("this is the books end point");
 });
+
+
+// when you pass an array of middleware  to express,it automatically flattens and
+// executes them sequensially one by one
+app.get('/api/video-calls',protectRoute,(req,res)=>{
+  res.status(200).json({message:"this is video end point"})
+})
 
 // Serve frontend static files (works in both development and production)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
