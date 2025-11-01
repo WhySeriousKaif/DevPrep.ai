@@ -1,24 +1,37 @@
 import "./App.css";
-import { SignedIn, SignedOut, SignInButton, SignOutButton, UserButton } from "@clerk/clerk-react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+  UserButton,
+  useUser,
+} from "@clerk/clerk-react";
+import { Routes, Route } from "react-router";
+import HomePage from "./pages/HomePage";
+import ProblemPage from "./pages/Problem";
+import { Navigate } from "react-router";
+import { Toaster } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 
 function App() {
+  const {isSignedIn} = useUser();
   return (
     <>
-      <h1>welcome</h1>
+      <h1 className="text-red-500 font-bold underline">welcome</h1>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
 
-      <SignedOut>   {/* show sign in button when when the user is signed out in the dashboard */}
-      <SignInButton mode="modal">
-        <button className="text-3xl font-bold underline">
-        login
-        </button>
-      </SignInButton>
-      </SignedOut>
-
-      <SignedIn>
-        <SignOutButton/>
-      </SignedIn>
-      {/* here userbutton u donot need to put in signedIn as it is directly handled by the clerk */}
-      <UserButton/>
+        <Route path="/problems" element={isSignedIn ? <ProblemPage /> : <Navigate to="/" />} />
+      </Routes>
+      <Toaster position="top-right" toastOptions={{
+        success: {
+          duration: 3000,
+        },
+        error: {
+          duration: 3000,
+        },
+      }} />
     </>
   );
 }
