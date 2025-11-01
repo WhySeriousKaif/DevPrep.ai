@@ -6,35 +6,62 @@ import { ENV } from "./env.js";
 const apiKey = ENV.STREAM_API_KEY;
 const apiSecret = ENV.STREAM_API_SECRET;
 
-if (!apiKey || !apiSecret) {
-  console.error("Stream api key or stream secret is missing!");
-}
-export const chatClient = StreamChat.getInstance(apiKey, apiSecret);
-export const upsertStreamUser = async (userData ) => {
-  // TODO: Implement Stream.io user upsert
-  // This will create or update a user in Stream.io
-  // Example:
-  // const streamClient = StreamChat.getInstance(apiKey, apiSecret);
-  // await streamClient.upsertUser({ id, name, image });
-  try {
-    await chatClient.upsertUsers(userData);
+// Initialize Stream Chat client (only if API keys are provided)
+let chatClient = null;
 
-    console.log("Upserting Stream user:", userData);
-    return userData;
+if (apiKey && apiSecret) {
+  chatClient = StreamChat.getInstance(apiKey, apiSecret);
+  console.log("✅ Stream.io client initialized");
+} else {
+  console.warn("⚠️ Stream.io API keys are missing. Stream features will be disabled.");
+}
+
+export { chatClient };
+export const upsertStreamUser = async (userData) => {
+  // Stream.io user upsert - creates or updates a user in Stream.io
+  try {
+    // Check if API keys and client are configured
+    if (!apiKey || !apiSecret || !chatClient) {
+      console.error("⚠️ Stream API keys are missing or client not initialized. Cannot upsert user.");
+      return null;
+    }
+
+    // Stream.io upsertUsers expects an array of user objects
+    // Format: [{ id: string, name: string, image: string }]
+    const streamUser = {
+      id: userData.id,
+      name: userData.name || "",
+      image: userData.image || "",
+    };
+
+    console.log("📤 Upserting Stream user:", streamUser);
+
+    const response = await chatClient.upsertUsers([streamUser]);
+
+    console.log("✅ Stream user upserted successfully:", streamUser.id);
+    return response.users[streamUser.id];
   } catch (err) {
-    console.err("error upserting Stream user", err);
+    console.error("❌ Error upserting Stream user:", err.message || err);
+    // Don't throw - allow the process to continue even if Stream fails
+    return null;
   }
 };
 
 export const deleteStreamUser = async (userId) => {
-  // TODO: Implement Stream.io user deletion
-  // Example:
-  // const streamClient = StreamChat.getInstance(apiKey, apiSecret);
-  // await streamClient.deleteUser(userId);
+  // Stream.io user deletion
   try {
-    await chatClient.deleteUser(userId)
-    console.log("stream user deleted")
+    // Check if API keys and client are configured
+    if (!apiKey || !apiSecret || !chatClient) {
+      console.error("⚠️ Stream API keys are missing or client not initialized. Cannot delete user.");
+      return null;
+    }
+
+    await chatClient.deleteUser(userId);
+    console.log("✅ Stream user deleted successfully:", userId);
+    return true;
   } catch (err) {
-    console.log("error deleting stream user",err)
+    console.error("❌ Error deleting Stream user:", err.message || err);
+    // Don't throw - allow the process to continue even if Stream fails
+    return null;
   }
 };

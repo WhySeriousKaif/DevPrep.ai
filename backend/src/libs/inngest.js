@@ -21,12 +21,25 @@ const syncUser = inngest.createFunction(
     };
 
     await User.create(newUser);
+    console.log("✅ User created in database:", newUser.email);
 
-    await upsertStreamUser({
-      id: newUser.clerkId.toString(),
-      name: newUser.name,
-      image: newUser.profileImage,
-    });
+    // Sync to Stream.io
+    try {
+      const streamResult = await upsertStreamUser({
+        id: newUser.clerkId.toString(),
+        name: newUser.name || "User", // Default name if empty
+        image: newUser.profileImage || "",
+      });
+      
+      if (streamResult) {
+        console.log("✅ User synced to Stream.io successfully");
+      } else {
+        console.warn("⚠️ User created but Stream.io sync failed (check API keys)");
+      }
+    } catch (streamError) {
+      console.error("❌ Error syncing user to Stream.io:", streamError);
+      // Continue even if Stream fails - user is already in database
+    }
   }
 );
 
@@ -35,6 +48,7 @@ const deleteUserFromDB = inngest.createFunction(
   { event: "clerk/user.deleted" },
 
   async ({ event }) => {
+    
     await connectDB();
 
     const { id } = event.data;
