@@ -7,6 +7,7 @@ import {serve} from 'inngest/express'
 import { inngest,functions } from "./libs/inngest.js";
 import { clerkMiddleware } from "@clerk/express";
 import { protectRoute } from "./middlewares/protectroute.js";
+import chatRoutes from "./routes/chat.routes.js";
 
 const app = express();
 
@@ -18,8 +19,12 @@ app.use(express.json())
 app.use(cors({
   origin:ENV.CLIENT_URL,credentials:true //server allows our browser to include cookies on req
 }))
-app.use("/api/inngest",serve({client:inngest,functions}))
 app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()
+
+
+app.use("/api/inngest",serve({client:inngest,functions}))
+
+app.use("/api/chat",protectRoute,chatRoutes)
 
 app.get("/books", (req, res) => {
   res.send("this is the books end point");
