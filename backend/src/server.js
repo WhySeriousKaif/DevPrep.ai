@@ -1,6 +1,7 @@
 import express from "express";
 import { ENV } from "./libs/env.js";
 import path from "path";
+import { connectDB } from "./libs/db.js";
 
 const app = express();
 
@@ -24,7 +25,16 @@ app.get("/", (req, res) => {
 app.get("/{*any}", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
 });
-app.listen(PORT, (req, res) => {
-  console.log(`server is running at ${PORT}`);
-  console.log("hi");
-});
+
+const startServer = async () => {
+  try {
+    await connectDB();
+    app.listen(PORT, (req, res) => {
+      console.log(`server is running at ${PORT}`);
+    });
+  } catch (err) {
+        console.err("error in starting the server 💥" ,err)
+  }
+};
+
+startServer()
