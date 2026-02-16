@@ -5,7 +5,22 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api"
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // by adding this field browser will send the cookies to server automatically, on every single req
+  withCredentials: true,
 });
+
+export const setupAxiosInterceptors = (getToken) => {
+  axiosInstance.interceptors.request.use(
+    async (config) => {
+      const token = await getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+};
 
 export default axiosInstance;

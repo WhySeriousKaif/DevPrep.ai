@@ -1,6 +1,8 @@
-import { useUser } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 import { Navigate, Route, Routes } from "react-router";
 import HomePage from "./pages/HomePage";
+import { useEffect } from "react";
+import { setupAxiosInterceptors } from "./lib/axios";
 
 import { Toaster } from "react-hot-toast";
 import DashboardPage from "./pages/DashboardPage";
@@ -13,6 +15,13 @@ import InterviewResultsPage from "./pages/InterviewResultsPage";
 
 function App() {
   const { isSignedIn, isLoaded } = useUser();
+  const { getToken } = useAuth();
+
+  useEffect(() => {
+    // Inject the getToken function into our Axios interceptor
+    // This allows axios.js to fetch the current session token for every request
+    setupAxiosInterceptors(getToken);
+  }, [getToken]);
 
   // this will get rid of the flickering effect
   if (!isLoaded) return null;
