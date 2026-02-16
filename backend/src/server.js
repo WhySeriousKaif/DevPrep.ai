@@ -10,6 +10,7 @@ import { protectRoute } from "./middlewares/protectroute.js";
 import chatRoutes from "./routes/chat.routes.js";
 import sessionRoutes from "./routes/session.routes.js";
 import interviewRoutes from "./routes/interview.routes.js";
+import userRoutes from "./routes/user.route.js";
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use("/api/inngest", serve({ client: inngest, functions }))
 app.use("/api/chat", chatRoutes)
 app.use('/api/session', sessionRoutes)
 app.use('/api/interview', interviewRoutes)
+app.use('/api/user', userRoutes)
 
 
 app.get("/books", (req, res) => {

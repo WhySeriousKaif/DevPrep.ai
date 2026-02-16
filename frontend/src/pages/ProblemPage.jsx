@@ -8,6 +8,7 @@ import ProblemDescription from "../components/ProblemDescription";
 import OutputPanel from "../components/OutputPanel";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 import { executeCode } from "../lib/piston";
+import { axiosInstance } from "../lib/axios";
 
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
@@ -81,23 +82,35 @@ function ProblemPage() {
     setOutput(null);
 
     const result = await executeCode(selectedLanguage, code);
-    setOutput(result);
     setIsRunning(false);
 
     // check if code executed successfully and matches expected output
-
     if (result.success) {
       const expectedOutput = currentProblem.expectedOutput[selectedLanguage];
       const testsPassed = checkIfTestsPassed(result.output, expectedOutput);
 
+      // Always show output
+      setOutput(result);
+
       if (testsPassed) {
         triggerConfetti();
         toast.success("All tests passed! Great job!");
+
+        // Mark as solved in backend
+        try {
+          await axiosInstance.post("/user/solve", { problemId: currentProblemId });
+          toast.success("Problem marked as solved!");
+        } catch (error) {
+          console.error("Failed to mark problem as solved:", error);
+        }
+
       } else {
         toast.error("Tests failed. Check your output!");
+        setOutput(result); // Show actual output
       }
     } else {
       toast.error("Code execution failed!");
+      setOutput(result);
     }
   };
 
