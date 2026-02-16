@@ -1,26 +1,35 @@
 import { getDifficultyBadgeClass } from "../lib/utils";
+import { BrainCircuitIcon } from "lucide-react";
+
 function ProblemDescription({ problem, currentProblemId, onProblemChange, allProblems }) {
   return (
-    <div className="h-full overflow-y-auto bg-base-200">
+    <div className="h-full overflow-y-auto bg-base-100/50 backdrop-blur-md custom-scrollbar">
       {/* HEADER SECTION */}
-      <div className="p-6 bg-base-100 border-b border-base-300">
-        <div className="flex items-start justify-between mb-3">
-          <h1 className="text-3xl font-bold text-base-content">{problem.title}</h1>
-          <span className={`badge ${getDifficultyBadgeClass(problem.difficulty)}`}>
+      <div className="p-6 border-b border-white/5 sticky top-0 bg-base-100/80 backdrop-blur-xl z-20">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <BrainCircuitIcon className="size-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-white">{problem.title}</h1>
+              <p className="text-xs text-base-content/60 font-medium tracking-wider uppercase mt-1">{problem.category}</p>
+            </div>
+          </div>
+          <span className={`badge badge-lg border-0 font-bold ${getDifficultyBadgeClass(problem.difficulty)}`}>
             {problem.difficulty}
           </span>
         </div>
-        <p className="text-base-content/60">{problem.category}</p>
 
         {/* Problem selector */}
         <div className="mt-4">
           <select
-            className="select select-sm w-full"
+            className="select select-sm w-full bg-white/5 border-white/10 text-base-content focus:border-primary/50"
             value={currentProblemId}
             onChange={(e) => onProblemChange(e.target.value)}
           >
             {allProblems.map((p) => (
-              <option key={p.id} value={p.id}>
+              <option key={p.id} value={p.id} className="bg-base-300">
                 {p.title} - {p.difficulty}
               </option>
             ))}
@@ -28,45 +37,48 @@ function ProblemDescription({ problem, currentProblemId, onProblemChange, allPro
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-8">
         {/* PROBLEM DESC */}
-        <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
-          <h2 className="text-xl font-bold text-base-content">Description</h2>
-
-          <div className="space-y-3 text-base leading-relaxed">
-            <p className="text-base-content/90">{problem.description.text}</p>
+        <div className="prose prose-sm max-w-none text-base-content/90">
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <div className="w-1 h-6 bg-primary rounded-full" />
+            Description
+          </h3>
+          <div className="text-base leading-relaxed pl-3 border-l-2 border-white/5">
+            <p>{problem.description.text}</p>
             {problem.description.notes.map((note, idx) => (
-              <p key={idx} className="text-base-content/90">
-                {note}
+              <p key={idx} className="text-base-content/80 italic">
+                Note: {note}
               </p>
             ))}
           </div>
         </div>
 
         {/* EXAMPLES SECTION */}
-        <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
-          <h2 className="text-xl font-bold mb-4 text-base-content">Examples</h2>
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <div className="w-1 h-6 bg-secondary rounded-full" />
+            Examples
+          </h3>
           <div className="space-y-4">
             {problem.examples.map((example, idx) => (
-              <div key={idx}>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="badge badge-sm">{idx + 1}</span>
-                  <p className="font-semibold text-base-content">Example {idx + 1}</p>
+              <div key={idx} className="bg-white/5 rounded-xl border border-white/5 overflow-hidden">
+                <div className="px-4 py-2 border-b border-white/5 bg-white/5 flex items-center gap-2">
+                  <span className="badge badge-sm badge-primary">Case {idx + 1}</span>
                 </div>
-                <div className="bg-base-200 rounded-lg p-4 font-mono text-sm space-y-1.5">
-                  <div className="flex gap-2">
-                    <span className="text-primary font-bold min-w-[70px]">Input:</span>
-                    <span>{example.input}</span>
+                <div className="p-4 space-y-3 font-mono text-sm">
+                  <div className="grid grid-cols-[60px_1fr] gap-2">
+                    <span className="text-base-content/50">Input:</span>
+                    <span className="text-white">{example.input}</span>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="text-secondary font-bold min-w-[70px]">Output:</span>
-                    <span>{example.output}</span>
+                  <div className="grid grid-cols-[60px_1fr] gap-2">
+                    <span className="text-base-content/50">Output:</span>
+                    <span className="text-success">{example.output}</span>
                   </div>
                   {example.explanation && (
-                    <div className="pt-2 border-t border-base-300 mt-2">
-                      <span className="text-base-content/60 font-sans text-xs">
-                        <span className="font-semibold">Explanation:</span> {example.explanation}
-                      </span>
+                    <div className="grid grid-cols-[60px_1fr] gap-2 pt-2 border-t border-white/5 mt-2">
+                      <span className="text-base-content/50">Details:</span>
+                      <span className="text-base-content/70 italic font-sans">{example.explanation}</span>
                     </div>
                   )}
                 </div>
@@ -76,16 +88,21 @@ function ProblemDescription({ problem, currentProblemId, onProblemChange, allPro
         </div>
 
         {/* CONSTRAINTS */}
-        <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
-          <h2 className="text-xl font-bold mb-4 text-base-content">Constraints</h2>
-          <ul className="space-y-2 text-base-content/90">
-            {problem.constraints.map((constraint, idx) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-primary">•</span>
-                <code className="text-sm">{constraint}</code>
-              </li>
-            ))}
-          </ul>
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <div className="w-1 h-6 bg-accent rounded-full" />
+            Constraints
+          </h3>
+          <div className="bg-white/5 rounded-xl p-4 border border-white/5">
+            <ul className="space-y-3 text-sm font-mono text-base-content/80">
+              {problem.constraints.map((constraint, idx) => (
+                <li key={idx} className="flex gap-3">
+                  <span className="text-primary">•</span>
+                  <span>{constraint}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

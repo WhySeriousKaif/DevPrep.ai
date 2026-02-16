@@ -70,6 +70,35 @@ function SessionPage() {
     }
   }, [problemData, selectedLanguage]);
 
+  // Real-time Code Sync
+  useEffect(() => {
+    if (!channel) return;
+
+    const handleCodeChange = (event) => {
+      if (event.user.id === user.id) return; // Ignore own events
+      const newCode = event.data?.code;
+      if (newCode !== undefined) {
+        setCode(newCode);
+      }
+    };
+
+    const handleLanguageSync = (event) => {
+      if (event.user.id === user.id) return;
+      const newLang = event.data?.language;
+      if (newLang) {
+        setSelectedLanguage(newLang);
+      }
+    };
+
+    channel.on("code-change", handleCodeChange);
+    channel.on("language-change", handleLanguageSync);
+
+    return () => {
+      channel.off("code-change", handleCodeChange);
+      channel.off("language-change", handleLanguageSync);
+    };
+  }, [channel, user]);
+
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
     setSelectedLanguage(newLang);
@@ -77,6 +106,32 @@ function SessionPage() {
     const starterCode = problemData?.starterCode?.[newLang] || "";
     setCode(starterCode);
     setOutput(null);
+
+    // Broadcast language change
+    if (channel) {
+      channel.sendEvent({
+        type: "language-change",
+        data: { language: newLang },
+      });
+      // Also broadcast the new starter code
+      channel.sendEvent({
+        type: "code-change",
+        data: { code: starterCode },
+      });
+    }
+  };
+
+  const handleCodeUpdate = (value) => {
+    setCode(value);
+
+    // Broadcast code change (debounced could be better but direct for now)
+    if (channel) {
+      // You might want to debounce this in a production app
+      channel.sendEvent({
+        type: "code-change",
+        data: { code: value },
+      });
+    }
   };
 
   const handleRunCode = async () => {
@@ -101,10 +156,10 @@ function SessionPage() {
 
       <div className="flex-1">
         <PanelGroup direction="horizontal">
-          {/* LEFT PANEL - CODE EDITOR & PROBLEM DETAILS */}
-          <Panel defaultSize={50} minSize={30}>
+          {/* LEFT PANEL - PROBLEM & VIDEO */}
+          <Panel defaultSize={20} minSize={20} maxSize={50}>
             <PanelGroup direction="vertical">
-              {/* PROBLEM DSC PANEL */}
+              {/* PROBLEM DESCRIPTION */}
               <Panel defaultSize={50} minSize={20}>
                 <div className="h-full overflow-y-auto bg-base-200">
                   {/* HEADER SECTION */}
@@ -229,63 +284,67 @@ function SessionPage() {
 
               <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
 
+              {/* VIDEO CALL PANEL (moved to bottom left) */}
               <Panel defaultSize={50} minSize={20}>
-                <PanelGroup direction="vertical">
-                  <Panel defaultSize={70} minSize={30}>
-                    <CodeEditorPanel
-                      selectedLanguage={selectedLanguage}
-                      code={code}
-                      isRunning={isRunning}
-                      onLanguageChange={handleLanguageChange}
-                      onCodeChange={(value) => setCode(value)}
-                      onRunCode={handleRunCode}
-                    />
-                  </Panel>
-
-                  <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
-
-                  <Panel defaultSize={30} minSize={15}>
-                    <OutputPanel output={output} />
-                  </Panel>
-                </PanelGroup>
+                <div className="h-full bg-base-200 p-4 overflow-hidden flex flex-col">
+                  {isInitializingCall ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="text-center">
+                        <Loader2Icon className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
+                        <p className="text-lg">Connecting to video call...</p>
+                      </div>
+                    </div>
+                  ) : !streamClient || !call ? (
+                    <div className="h-full flex items-center justify-center">
+                      <div className="card bg-base-100 shadow-xl max-w-md">
+                        <div className="card-body items-center text-center">
+                          <div className="w-24 h-24 bg-error/10 rounded-full flex items-center justify-center mb-4">
+                            <PhoneOffIcon className="w-12 h-12 text-error" />
+                          </div>
+                          <h2 className="card-title text-2xl">Connection Failed</h2>
+                          <p className="text-base-content/70">Unable to connect to the video call</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full">
+                      <StreamVideo client={streamClient}>
+                        <StreamCall call={call}>
+                          <VideoCallUI chatClient={chatClient} channel={channel} />
+                        </StreamCall>
+                      </StreamVideo>
+                    </div>
+                  )}
+                </div>
               </Panel>
             </PanelGroup>
           </Panel>
 
           <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
 
-          {/* RIGHT PANEL - VIDEO CALLS & CHAT */}
-          <Panel defaultSize={50} minSize={30}>
-            <div className="h-full bg-base-200 p-4 overflow-auto">
-              {isInitializingCall ? (
-                <div className="h-full flex items-center justify-center">
-                  <div className="text-center">
-                    <Loader2Icon className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
-                    <p className="text-lg">Connecting to video call...</p>
-                  </div>
-                </div>
-              ) : !streamClient || !call ? (
-                <div className="h-full flex items-center justify-center">
-                  <div className="card bg-base-100 shadow-xl max-w-md">
-                    <div className="card-body items-center text-center">
-                      <div className="w-24 h-24 bg-error/10 rounded-full flex items-center justify-center mb-4">
-                        <PhoneOffIcon className="w-12 h-12 text-error" />
-                      </div>
-                      <h2 className="card-title text-2xl">Connection Failed</h2>
-                      <p className="text-base-content/70">Unable to connect to the video call</p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full">
-                  <StreamVideo client={streamClient}>
-                    <StreamCall call={call}>
-                      <VideoCallUI chatClient={chatClient} channel={channel} />
-                    </StreamCall>
-                  </StreamVideo>
-                </div>
-              )}
-            </div>
+          {/* RIGHT PANEL - CODE EDITOR (Full Height) */}
+          <Panel defaultSize={80} minSize={30}>
+            <PanelGroup direction="vertical">
+              <Panel defaultSize={70} minSize={30}>
+                <CodeEditorPanel
+                  selectedLanguage={selectedLanguage}
+                  code={code}
+                  isRunning={isRunning}
+                  onLanguageChange={handleLanguageChange}
+                  onCodeChange={handleCodeUpdate}
+                  onRunCode={handleRunCode}
+                />
+              </Panel>
+
+              <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
+
+              <Panel defaultSize={30} minSize={15}>
+                <OutputPanel
+                  output={output}
+                  expectedOutput={problemData?.expectedOutput?.[selectedLanguage]}
+                />
+              </Panel>
+            </PanelGroup>
           </Panel>
         </PanelGroup>
       </div>

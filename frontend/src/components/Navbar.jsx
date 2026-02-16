@@ -5,87 +5,79 @@ import { UserButton } from "@clerk/clerk-react";
 function Navbar() {
   const location = useLocation();
 
-  console.log(location);
-
   const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto p-4 flex items-center justify-between">
+    <nav className="glass-panel sticky top-4 z-50 mx-auto max-w-7xl rounded-2xl my-4 border border-white/10">
+      <div className="px-6 py-3 flex items-center justify-between">
         {/* LOGO */}
         <Link
           to="/"
-          className="group flex items-center gap-3 hover:scale-105 transition-transform duration-200"
+          className="group flex items-center gap-3"
         >
-          <div className="size-10 rounded-xl bg-gradient-to-r from-primary via-secondary to-accent flex items-center justify-center shadow-lg ">
-            <SparklesIcon className="size-6 text-white" />
+          <div className="size-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all duration-300">
+            <SparklesIcon className="size-6 text-white group-hover:scale-110 transition-transform" />
           </div>
 
           <div className="flex flex-col">
-            <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent font-mono tracking-wider">
+            <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-wide">
               Talent IQ
             </span>
-            <span className="text-xs text-base-content/60 font-medium -mt-1">Code Together</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-base-content/50">Code Together</span>
           </div>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {/* PROBLEMS PAGE LINK */}
           <Link
             to={"/problems"}
-            className={`px-4 py-2.5 rounded-xl transition-all duration-200 
-              ${
-                isActive("/problems")
-                  ? "bg-primary text-primary-content"
-                  : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
+            className={`px-4 py-2 rounded-xl transition-all duration-300 text-sm font-medium flex items-center gap-2
+              ${isActive("/problems")
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
+                : "hover:bg-white/5 text-base-content/70 hover:text-white"
               }
-              
               `}
           >
-            <div className="flex items-center gap-x-2.5">
-              <BookOpenIcon className="size-4" />
-              <span className="font-medium hidden sm:inline">Problems</span>
-            </div>
+            <BookOpenIcon className="size-4" />
+            <span className="hidden sm:inline">Problems</span>
           </Link>
 
           {/* AI INTERVIEW PAGE LINK */}
           <Link
             to={"/ai-interview"}
-            className={`px-4 py-2.5 rounded-xl transition-all duration-200 
-              ${
-                isActive("/ai-interview") || isActive("/interview/")
-                  ? "bg-primary text-primary-content"
-                  : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
+            className={`px-4 py-2 rounded-xl transition-all duration-300 text-sm font-medium flex items-center gap-2
+              ${isActive("/ai-interview") || isActive("/interview/")
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
+                : "hover:bg-white/5 text-base-content/70 hover:text-white"
               }
-              
               `}
           >
-            <div className="flex items-center gap-x-2.5">
-              <MicIcon className="size-4" />
-              <span className="font-medium hidden sm:inline">AI Interview</span>
-            </div>
+            <MicIcon className="size-4" />
+            <span className="hidden sm:inline">AI Interview</span>
           </Link>
 
-          {/* DASHBORD PAGE LINK */}
+          {/* DASHBOARD PAGE LINK */}
           <Link
             to={"/dashboard"}
-            className={`px-4 py-2.5 rounded-xl transition-all duration-200 
-              ${
-                isActive("/dashboard")
-                  ? "bg-primary text-primary-content"
-                  : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
+            className={`px-4 py-2 rounded-xl transition-all duration-300 text-sm font-medium flex items-center gap-2
+              ${isActive("/dashboard")
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
+                : "hover:bg-white/5 text-base-content/70 hover:text-white"
               }
-              
               `}
           >
-            <div className="flex items-center gap-x-2.5">
-              <LayoutDashboardIcon className="size-4" />
-              <span className="font-medium hidden sm:inline">Dashbord</span>
-            </div>
+            <LayoutDashboardIcon className="size-4" />
+            <span className="hidden sm:inline">Dashboard</span>
           </Link>
 
-          <div className="ml-4 mt-2">
-            <UserButton />
+          <div className="ml-4 pl-4 border-l border-white/10">
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: "size-9 border-2 border-primary/20",
+                }
+              }}
+            />
           </div>
         </div>
       </div>

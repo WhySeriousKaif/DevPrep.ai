@@ -2,28 +2,42 @@ import { TrophyIcon, UsersIcon } from "lucide-react";
 
 function StatsCards({ activeSessionsCount, recentSessionsCount }) {
   return (
-    <div className="lg:col-span-1 grid grid-cols-1 gap-3 md:gap-4">
+    <div className="lg:col-span-1 grid grid-cols-1 gap-6 h-full">
       {/* Active Count */}
-      <div className="bg-base-100/80 backdrop-blur-sm border border-primary/10 hover:border-primary/20 rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-md">
-        <div className="flex items-center justify-between mb-4">
-          <div className="p-2.5 bg-primary/5 rounded-lg">
-            <UsersIcon className="w-5 h-5 text-primary" />
-          </div>
-          <div className="badge badge-primary badge-sm text-xs">Live</div>
+      <div className="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 border border-white/5">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+          <UsersIcon className="size-20 text-primary transform rotate-12" />
         </div>
-        <div className="text-3xl md:text-4xl font-bold text-primary mb-1">{activeSessionsCount}</div>
-        <div className="text-xs md:text-sm text-base-content/50 font-medium">Active Sessions</div>
+
+        <div className="flex items-center justify-between mb-4 relative z-10">
+          <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+            <UsersIcon className="size-6 text-primary" />
+          </div>
+          <div className="badge badge-primary badge-sm animate-pulse bg-primary/20 text-primary border-primary/20">Live</div>
+        </div>
+
+        <div className="text-4xl font-black text-white mb-1 neon-text-primary relative z-10">
+          {activeSessionsCount}
+        </div>
+        <div className="text-sm text-base-content/60 font-medium relative z-10">Active Sessions</div>
       </div>
 
       {/* Recent Count */}
-      <div className="bg-base-100/80 backdrop-blur-sm border border-secondary/10 hover:border-secondary/20 rounded-xl p-4 md:p-5 transition-all duration-200 hover:shadow-md">
-        <div className="flex items-center justify-between mb-4">
-          <div className="p-2.5 bg-secondary/5 rounded-lg">
-            <TrophyIcon className="w-5 h-5 text-secondary" />
+      <div className="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 border border-white/5">
+        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+          <TrophyIcon className="size-20 text-secondary transform -rotate-12" />
+        </div>
+
+        <div className="flex items-center justify-between mb-4 relative z-10">
+          <div className="p-3 bg-secondary/10 rounded-2xl border border-secondary/20">
+            <TrophyIcon className="size-6 text-secondary" />
           </div>
         </div>
-        <div className="text-3xl md:text-4xl font-bold text-secondary mb-1">{recentSessionsCount}</div>
-        <div className="text-xs md:text-sm text-base-content/50 font-medium">Total Sessions</div>
+
+        <div className="text-4xl font-black text-white mb-1 relative z-10" style={{ textShadow: "0 0 10px rgba(6, 182, 212, 0.5)" }}>
+          {recentSessionsCount}
+        </div>
+        <div className="text-sm text-base-content/60 font-medium relative z-10">Total Sessions</div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { executeCode } from "../lib/piston";
 
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
+import { GripVerticalIcon } from "lucide-react";
 
 function ProblemPage() {
   const { id } = useParams();
@@ -44,15 +45,9 @@ function ProblemPage() {
 
   const triggerConfetti = () => {
     confetti({
-      particleCount: 80,
-      spread: 250,
-      origin: { x: 0.2, y: 0.6 },
-    });
-
-    confetti({
-      particleCount: 80,
-      spread: 250,
-      origin: { x: 0.8, y: 0.6 },
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
     });
   };
 
@@ -107,11 +102,11 @@ function ProblemPage() {
   };
 
   return (
-    <div className="h-screen bg-base-100 flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Navbar />
 
-      <div className="flex-1">
-        <PanelGroup direction="horizontal">
+      <div className="flex-1 p-4 pt-0 overflow-hidden">
+        <PanelGroup direction="horizontal" className="h-full rounded-2xl overflow-hidden glass-panel border-0">
           {/* left panel- problem desc */}
           <Panel defaultSize={40} minSize={30}>
             <ProblemDescription
@@ -122,7 +117,9 @@ function ProblemPage() {
             />
           </Panel>
 
-          <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
+          <PanelResizeHandle className="w-1.5 bg-white/5 hover:bg-primary/50 transition-colors cursor-col-resize flex items-center justify-center group h-full">
+            <div className="h-8 w-1 rounded-full bg-white/20 group-hover:bg-primary transition-colors" />
+          </PanelResizeHandle>
 
           {/* right panel- code editor & output */}
           <Panel defaultSize={60} minSize={30}>
@@ -139,7 +136,9 @@ function ProblemPage() {
                 />
               </Panel>
 
-              <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
+              <PanelResizeHandle className="h-1.5 bg-white/5 hover:bg-primary/50 transition-colors cursor-row-resize flex items-center justify-center group w-full">
+                <div className="w-8 h-1 rounded-full bg-white/20 group-hover:bg-primary transition-colors" />
+              </PanelResizeHandle>
 
               {/* Bottom panel - Output Panel*/}
 

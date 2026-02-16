@@ -5,7 +5,7 @@ const GEMINI_API_KEY = ENV.GEMINI_API_KEY || "";
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
 // Alternative: gemini-1.5-flash or gemini-1.5-pro
-const GEMINI_MODEL = "gemini-2.0-flash-exp";
+const GEMINI_MODEL = "gemini-1.5-flash";
 
 /**
  * Analyze interview transcript and generate feedback
@@ -56,7 +56,7 @@ Return ONLY valid JSON, no additional text.`;
 
   try {
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-    
+
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {

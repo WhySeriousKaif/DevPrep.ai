@@ -26,7 +26,7 @@ function AIInterviewPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.role || !formData.experience || !formData.topicsToFocus) {
       toast.error("Please fill in all required fields");
       return;
@@ -68,98 +68,103 @@ function AIInterviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-200 via-base-100 to-base-200">
+    <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden">
+      {/* BACKGROUND BLOBS */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-float" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-float-delayed" />
+        {/* Background Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+      </div>
+
       <Navbar />
-      
-      <div className="container mx-auto px-4 md:px-6 py-12 max-w-4xl">
+
+      <div className="container mx-auto px-4 md:px-6 py-12 max-w-4xl relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="size-16 rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent flex items-center justify-center shadow-lg">
-              <MicIcon className="size-8 text-white" />
-            </div>
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center p-4 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-3xl mb-6 shadow-2xl shadow-primary/10 border border-white/5">
+            <MicIcon className="size-10 text-primary" />
           </div>
-          <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent mb-2">
-            AI Interview
+          <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
+            <span className="neon-text-primary text-white">AI Interview</span> Assistant
           </h1>
-          <p className="text-base-content/70 text-lg">
-            Prepare for your next interview with our AI-powered interview assistant
+          <p className="text-lg text-base-content/60 max-w-xl mx-auto">
+            Prepare for your next interview with our intelligent AI interviewer. Get real-time feedback and detailed performance analytics.
           </p>
         </div>
 
         {/* Interview Setup Form */}
-        <div className="bg-base-100 rounded-2xl shadow-xl p-6 md:p-8 border border-primary/20">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Role Input */}
-            <div>
-              <label
-                htmlFor="role"
-                className="block text-sm font-semibold text-base-content mb-2"
-              >
-                Role / Position <span className="text-error">*</span>
-              </label>
-              <input
-                type="text"
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                placeholder="e.g., Frontend Developer, Data Scientist, Software Engineer"
-                className="w-full px-4 py-3 rounded-xl bg-base-200 border border-base-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                required
-              />
-            </div>
+        <div className="glass-panel rounded-3xl p-8 md:p-10 relative overflow-hidden border-white/5 shadow-2xl">
+          {/* Decorative gradients */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[80px] -z-10" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/10 blur-[80px] -z-10" />
 
-            {/* Experience Input */}
-            <div>
-              <label
-                htmlFor="experience"
-                className="block text-sm font-semibold text-base-content mb-2"
-              >
-                Years of Experience <span className="text-error">*</span>
-              </label>
-              <input
-                type="number"
-                id="experience"
-                name="experience"
-                value={formData.experience}
-                onChange={handleInputChange}
-                placeholder="e.g., 2, 5, 10"
-                min="0"
-                max="50"
-                className="w-full px-4 py-3 rounded-xl bg-base-200 border border-base-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Role Input */}
+              <div className="space-y-2">
+                <label htmlFor="role" className="text-sm font-semibold text-white ml-1">
+                  Role / Position <span className="text-error">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Frontend Developer"
+                  className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder:text-white/20"
+                  required
+                />
+              </div>
+
+              {/* Experience Input */}
+              <div className="space-y-2">
+                <label htmlFor="experience" className="text-sm font-semibold text-white ml-1">
+                  Years of Experience <span className="text-error">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="experience"
+                  name="experience"
+                  value={formData.experience}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 2"
+                  min="0"
+                  max="50"
+                  className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder:text-white/20"
+                  required
+                />
+              </div>
             </div>
 
             {/* Interview Type */}
-            <div>
-              <label
-                htmlFor="interviewType"
-                className="block text-sm font-semibold text-base-content mb-2"
-              >
+            <div className="space-y-2">
+              <label htmlFor="interviewType" className="text-sm font-semibold text-white ml-1">
                 Interview Type <span className="text-error">*</span>
               </label>
-              <select
-                id="interviewType"
-                name="interviewType"
-                value={formData.interviewType}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-xl bg-base-200 border border-base-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
-                required
-              >
-                <option value="technical">Technical Interview</option>
-                <option value="behavioral">Behavioral Interview</option>
-                <option value="mixed">Mixed (Technical + Behavioral)</option>
-              </select>
+              <div className="relative">
+                <select
+                  id="interviewType"
+                  name="interviewType"
+                  value={formData.interviewType}
+                  onChange={handleInputChange}
+                  className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-white appearance-none cursor-pointer hover:bg-white/10"
+                  required
+                >
+                  <option value="technical" className="bg-base-200">Technical Interview</option>
+                  <option value="behavioral" className="bg-base-200">Behavioral Interview</option>
+                  <option value="mixed" className="bg-base-200">Mixed (Technical + Behavioral)</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
             </div>
 
             {/* Topics to Focus */}
-            <div>
-              <label
-                htmlFor="topicsToFocus"
-                className="block text-sm font-semibold text-base-content mb-2"
-              >
+            <div className="space-y-2">
+              <label htmlFor="topicsToFocus" className="text-sm font-semibold text-white ml-1">
                 Topics to Focus On <span className="text-error">*</span>
               </label>
               <input
@@ -168,21 +173,18 @@ function AIInterviewPage() {
                 name="topicsToFocus"
                 value={formData.topicsToFocus}
                 onChange={handleInputChange}
-                placeholder="e.g., React, JavaScript, Node.js, Algorithms (comma-separated)"
-                className="w-full px-4 py-3 rounded-xl bg-base-200 border border-base-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                placeholder="e.g., React, Node.js, System Design..."
+                className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder:text-white/20"
                 required
               />
-              <p className="text-xs text-base-content/60 mt-1">
+              <p className="text-xs text-white/40 ml-1">
                 Enter topics separated by commas
               </p>
             </div>
 
             {/* Description */}
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-semibold text-base-content mb-2"
-              >
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-semibold text-white ml-1">
                 Additional Context (Optional)
               </label>
               <textarea
@@ -190,9 +192,9 @@ function AIInterviewPage() {
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Add any additional context or specific areas you'd like to focus on..."
+                placeholder="Add any specific areas you'd like to focus on..."
                 rows="4"
-                className="w-full px-4 py-3 rounded-xl bg-base-200 border border-base-300 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                className="w-full px-5 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-white placeholder:text-white/20 resize-none"
               />
             </div>
 
@@ -200,12 +202,12 @@ function AIInterviewPage() {
             <button
               type="submit"
               disabled={isCreating}
-              className="w-full px-6 py-4 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-4 btn-primary rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-primary/40 transition-all duration-300 hover:scale-[1.02] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
             >
               {isCreating ? (
                 <>
-                  <div className="loading loading-spinner loading-sm"></div>
-                  <span>Creating Interview...</span>
+                  <div className="loading loading-spinner text-white"></div>
+                  <span>Setting up your interview...</span>
                 </>
               ) : (
                 <>
@@ -218,36 +220,34 @@ function AIInterviewPage() {
         </div>
 
         {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-          <div className="bg-base-100 rounded-xl p-4 border border-primary/20">
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircleIcon className="size-5 text-success" />
-              <h3 className="font-semibold text-base-content">Real-time Feedback</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          {[
+            {
+              title: "Real-time Feedback",
+              desc: "Get instant feedback on your answers during the interview",
+              icon: <div className="size-2 bg-success rounded-full animate-pulse" />
+            },
+            {
+              title: "Customized Questions",
+              desc: "Questions tailored to your role and experience level",
+              icon: <div className="size-2 bg-primary rounded-full animate-pulse" />
+            },
+            {
+              title: "Practice Anytime",
+              desc: "Practice your interview skills at your own pace",
+              icon: <div className="size-2 bg-secondary rounded-full animate-pulse" />
+            }
+          ].map((item, idx) => (
+            <div key={idx} className="glass-card p-6 rounded-2xl hover:bg-white/5 border border-white/5">
+              <div className="flex items-center gap-3 mb-3">
+                {item.icon}
+                <h3 className="font-bold text-white">{item.title}</h3>
+              </div>
+              <p className="text-sm text-base-content/60 leading-relaxed">
+                {item.desc}
+              </p>
             </div>
-            <p className="text-sm text-base-content/70">
-              Get instant feedback on your answers during the interview
-            </p>
-          </div>
-
-          <div className="bg-base-100 rounded-xl p-4 border border-primary/20">
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircleIcon className="size-5 text-success" />
-              <h3 className="font-semibold text-base-content">Customized Questions</h3>
-            </div>
-            <p className="text-sm text-base-content/70">
-              Questions tailored to your role and experience level
-            </p>
-          </div>
-
-          <div className="bg-base-100 rounded-xl p-4 border border-primary/20">
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircleIcon className="size-5 text-success" />
-              <h3 className="font-semibold text-base-content">Practice Anytime</h3>
-            </div>
-            <p className="text-sm text-base-content/70">
-              Practice your interview skills at your own pace
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </div>
