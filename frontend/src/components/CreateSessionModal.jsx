@@ -95,8 +95,12 @@ function CreateSessionModal({
 
           <button
             className="btn btn-primary gap-2 shadow-lg shadow-primary/20 px-8"
-            onClick={onCreateRoom}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isCreating) onCreateRoom();
+            }}
             disabled={isCreating || !roomConfig.problem}
+            type="button"
           >
             {isCreating ? (
               <LoaderIcon className="size-5 animate-spin" />
