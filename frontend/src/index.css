@@ -60,7 +60,15 @@ body {
 }
 
 .bento-item {
-  @apply glass-panel rounded-3xl p-6 flex flex-col relative overflow-hidden transition-all duration-300;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  @apply rounded-3xl p-6 flex flex-col relative overflow-hidden transition-all duration-300;
 }
 
 .bento-item:hover {
