@@ -1,33 +1,42 @@
 @import "tailwindcss";
+
 @plugin "daisyui" {
-  themes: [
-    {
-      dark: {
-        "primary": "#8b5cf6",     /* Violet-500 */
+  themes: [ {
+    dark: {
+      "primary": "#8b5cf6",
+        /* Violet-500 */
         "primary-content": "#ffffff",
-        "secondary": "#06b6d4",   /* Cyan-500 */
+        "secondary": "#06b6d4",
+        /* Cyan-500 */
         "secondary-content": "#ffffff",
-        "accent": "#f472b6",      /* Pink-400 */
+        "accent": "#f472b6",
+        /* Pink-400 */
         "accent-content": "#ffffff",
-        "neutral": "#1e293b",     /* Slate-800 */
+        "neutral": "#1e293b",
+        /* Slate-800 */
         "neutral-content": "#cbd5e1",
-        "base-100": "#0f172a",    /* Slate-950 (Deep Space) */
-        "base-200": "#1e293b",    /* Slate-800 */
-        "base-300": "#334155",    /* Slate-700 */
-        "base-content": "#f8fafc",/* Slate-50 */
+        "base-100": "#0f172a",
+        /* Slate-950 (Deep Space) */
+        "base-200": "#1e293b",
+        /* Slate-800 */
+        "base-300": "#334155",
+        /* Slate-700 */
+        "base-content": "#f8fafc",
+        /* Slate-50 */
         "info": "#3b82f6",
         "success": "#22c55e",
         "warning": "#f59e0b",
-        "error": "#ef4444",
-      },
-    },
-  ];
+        "error": "#ef4444"
+    }
+  }
+
+  ]
 }
 
 body {
   font-family: 'Inter', sans-serif;
   background-color: #0f172a;
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(244, 114, 182, 0.15) 0px, transparent 50%);
@@ -56,9 +65,9 @@ body {
   transform: translateY(-5px);
   background: rgba(30, 41, 59, 0.5);
   border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 
+  box-shadow:
     0 20px 40px -5px rgba(0, 0, 0, 0.4),
-    0 0 20px -5px rgba(139, 92, 246, 0.2); 
+    0 0 20px -5px rgba(139, 92, 246, 0.2);
 }
 
 /* 3D Effects */
@@ -122,23 +131,31 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a; 
+  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155; 
+  background: #334155;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569; 
+  background: #475569;
 }
 
 /* Animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-float {
@@ -148,4 +165,3 @@ body {
 .animate-float-delayed {
   animation: float 6s ease-in-out 3s infinite;
 }
-
