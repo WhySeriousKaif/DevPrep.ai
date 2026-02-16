@@ -2,13 +2,15 @@ import { useNavigate } from "react-router";
 import { useUser } from "@clerk/clerk-react";
 import { useState } from "react";
 import { useActiveSessions, useCreateSession, useMyRecentSessions } from "../hooks/useSessions";
+import { PlusIcon } from "lucide-react";
+import { UserButton } from "@clerk/clerk-react";
 
 import Navbar from "../components/Navbar";
 import WelcomeSection from "../components/WelcomeSection";
-import StatsCards from "../components/StatsCards";
 import ActiveSessions from "../components/ActiveSessions";
 import RecentSessions from "../components/RecentSessions";
 import CreateSessionModal from "../components/CreateSessionModal";
+import StatsCards from "../components/StatsCards";
 
 function DashboardPage() {
   const navigate = useNavigate();
@@ -43,45 +45,78 @@ function DashboardPage() {
 
   const isUserInSession = (session) => {
     if (!user.id) return false;
-
     return session.host?.clerkId === user.id || session.participant?.clerkId === user.id;
   };
 
   return (
     <>
-      <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden">
-        {/* BACKGROUND BLOBS */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-          <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-float" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-float-delayed" />
-          {/* Background Grid */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-        </div>
-
+      <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden font-sans">
         <Navbar />
 
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
 
-          <div className="mb-8">
-            <WelcomeSection onCreateSession={() => setShowCreateModal(true)} />
+          {/* BENTO GRID LAYOUT */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[minmax(120px,auto)] md:auto-rows-[160px]">
+
+            {/* 1. WELCOME SECTION (2x1) */}
+            <div className="col-span-1 md:col-span-2 glass-panel p-6 rounded-3xl border border-white/5 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-500">
+                <div className="size-32 bg-primary/30 rounded-full blur-3xl"></div>
+              </div>
+              <WelcomeSection />
+            </div>
+
+            {/* 2. STATS CARDS (1x1 each or combined) - REUSING STATSCARDS FOR NOW BUT WRAPPED */}
+            <div className="col-span-1 md:col-span-1 md:row-span-2">
+              <StatsCards
+                activeSessionsCount={activeSessions.length}
+                recentSessionsCount={recentSessions.length}
+              />
+            </div>
+
+            {/* 3. QUICK ACTION (1x1) */}
+            <div className="col-span-1 md:col-span-1">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="w-full h-full bg-gradient-to-br from-primary to-secondary rounded-3xl p-6 relative overflow-hidden group hover:scale-[1.02] transition-all duration-300 shadow-xl shadow-primary/20"
+              >
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full gap-3">
+                  <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
+                    <PlusIcon className="size-8 text-white" />
+                  </div>
+                  <span className="font-bold text-white text-lg">New Session</span>
+                </div>
+              </button>
+            </div>
+
+            {/* 4. ACTIVE SESSIONS (2x2) */}
+            <div className="col-span-1 md:col-span-2 md:row-span-2 row-span-2">
+              <ActiveSessions
+                sessions={activeSessions}
+                isLoading={loadingActiveSessions}
+                isUserInSession={isUserInSession}
+              />
+            </div>
+
+            {/* 5. PROFILE / INFO (1x1) */}
+            <div className="col-span-1 glass-panel p-6 rounded-3xl flex flex-col items-center justify-center gap-3 border border-white/5 md:row-span-1">
+              <div className="size-16 rounded-full p-1 bg-gradient-to-tr from-primary/30 to-secondary/30">
+                <img src={user?.imageUrl} alt="Profile" className="w-full h-full rounded-full object-cover border-2 border-white/10" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-sm text-white">{user?.fullName}</p>
+                <p className="text-xs text-base-content/50">Free Plan</p>
+              </div>
+            </div>
+
           </div>
 
-          {/* Grid layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
-            <StatsCards
-              activeSessionsCount={activeSessions.length}
-              recentSessionsCount={recentSessions.length}
-            />
-            <ActiveSessions
-              sessions={activeSessions}
-              isLoading={loadingActiveSessions}
-              isUserInSession={isUserInSession}
-            />
-          </div>
-
-          <div className="glass-panel p-6 rounded-2xl border border-white/5">
+          {/* RECENT SESSIONS (Full Width) */}
+          <div className="mt-8">
             <RecentSessions sessions={recentSessions} isLoading={loadingRecentSessions} />
           </div>
+
         </div>
       </div>
 

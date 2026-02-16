@@ -20,8 +20,8 @@ function Navbar() {
           </div>
 
           <div className="flex flex-col">
-            <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-wide">
-              Talent IQ
+            <span className="font-black text-lg bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-wide">
+              DevPrep.ai
             </span>
             <span className="text-[10px] uppercase font-bold tracking-widest text-base-content/50">Code Together</span>
           </div>

@@ -47,7 +47,7 @@ function HomePage() {
 
             <div className="flex flex-col">
               <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-wide">
-                Talent IQ
+                DevPrep.ai
               </span>
               <span className="text-[10px] uppercase font-bold tracking-widest text-base-content/50">Code Together</span>
             </div>
@@ -73,14 +73,14 @@ function HomePage() {
               <span>Next-Gen AI Interviews</span>
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-black leading-[1.1] tracking-tight">
+            <h1 className="text-4xl lg:text-5xl font-black leading-[1.1] tracking-tight">
               Master Your <br />
               <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent neon-text-primary">
                 Technical Interview
               </span>
             </h1>
 
-            <p className="text-lg text-base-content/70 leading-relaxed max-w-xl glass-panel p-6 rounded-2xl border-l-4 border-primary border-y border-r border-white/5">
+            <p className="text-sm text-base-content/70 leading-relaxed max-w-xl glass-panel p-6 rounded-2xl border-l-4 border-primary border-y border-r border-white/5">
               Experience the future of interview prep with our AI-powered platform.
               Real-time code collaboration, voice-enabled AI mock interviews, and
               instant performance analytics.
@@ -205,10 +205,10 @@ function HomePage() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-base-content/60">
             <SparklesIcon className="size-4 text-primary" />
-            <span className="font-semibold">Talent IQ</span>
+            <span className="font-semibold">DevPrep.ai</span>
           </div>
           <p className="text-sm text-base-content/40">
-            &copy; 2026 Talent IQ. All rights reserved.
+            &copy; 2026 DevPrep.ai. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm text-base-content/40">
             <a href="#" className="hover:text-primary transition-colors">Privacy</a>
