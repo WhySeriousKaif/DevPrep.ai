@@ -8,7 +8,7 @@ export async function createSession(req, res) {
     const userId = req.user._id;
     const clerkId = req.user.clerkId;
 
-    
+
     if (!problem || !difficulty) {
       return res.status(400).json({ message: "Problem and difficulty are required" });
     }
@@ -20,27 +20,33 @@ export async function createSession(req, res) {
     const session = await Session.create({ problem, difficulty, host: userId, callId });
 
     // create stream video call (if Stream is configured)
-    if (streamClient) {
-      await streamClient.video.call("default", callId).getOrCreate({
-        data: {
-          created_by_id: clerkId,
-          custom: { problem, difficulty, sessionId: session._id.toString() },
-        },
-      });
-    } else {
-      console.warn("⚠️ Stream streamClient not initialized. Video call not created.");
+    // create stream video call (if Stream is configured)
+    try {
+      if (streamClient) {
+        await streamClient.video.call("default", callId).getOrCreate({
+          data: {
+            created_by_id: clerkId,
+            custom: { problem, difficulty, sessionId: session._id.toString() },
+          },
+        });
+      }
+    } catch (streamError) {
+      console.error("⚠️ Stream video call creation failed:", streamError.message);
+      // Continue execution - don't fail the whole session creation
     }
 
     // chat messaging (if Stream is configured)
-    if (chatClient) {
-      const channel = chatClient.channel("messaging", callId, {
-        name: `${problem} Session`,
-        created_by_id: clerkId,
-        members: [clerkId],
-      });
-      await channel.create();
-    } else {
-      console.warn("⚠️ Stream chatClient not initialized. Chat channel not created.");
+    try {
+      if (chatClient) {
+        const channel = chatClient.channel("messaging", callId, {
+          name: `${problem} Session`,
+          created_by_id: clerkId,
+          members: [clerkId],
+        });
+        await channel.create();
+      }
+    } catch (chatError) {
+      console.error("⚠️ Stream chat creation failed:", chatError.message);
     }
 
     res.status(201).json({ session });
