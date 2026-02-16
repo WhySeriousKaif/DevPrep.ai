@@ -2,7 +2,7 @@ import { clerkClient, requireAuth } from "@clerk/express";
 import User from "../models/user.model.js";
 
 export const protectRoute = [
-  requireAuth({ signInUrl: "/sign-in" }),
+  requireAuth(),
   async (req, res, next) => {
     try {
       const clerkId = req.auth().userId;
