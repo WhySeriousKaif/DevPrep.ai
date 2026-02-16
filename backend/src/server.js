@@ -3,8 +3,8 @@ import { ENV } from "./libs/env.js";
 import path from "path";
 import { connectDB } from "./libs/db.js";
 import cors from 'cors'
-import {serve} from 'inngest/express'
-import { inngest,functions } from "./libs/inngest.js";
+import { serve } from 'inngest/express'
+import { inngest, functions } from "./libs/inngest.js";
 import { clerkMiddleware } from "@clerk/express";
 import { protectRoute } from "./middlewares/protectroute.js";
 import chatRoutes from "./routes/chat.routes.js";
@@ -14,7 +14,7 @@ import interviewRoutes from "./routes/interview.routes.js";
 const app = express();
 
 const PORT = ENV.PORT;
-const __dirname = path.resolve(); 
+const __dirname = path.resolve();
 
 // CORS configuration - MUST come before other middleware
 // Allow multiple origins for dev and production
@@ -28,7 +28,7 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
+
     // Check if origin is in allowed list or contains localhost
     if (allowedOrigins.includes(origin) || origin.includes("localhost") || origin.includes("sevalla.app")) {
       callback(null, true);
@@ -58,11 +58,11 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(clerkMiddleware()) //this adds auth filed to req   object:req.auth()
 
 
-app.use("/api/inngest",serve({client:inngest,functions}))
+app.use("/api/inngest", serve({ client: inngest, functions }))
 
-app.use("/api/chat",chatRoutes)
-app.use('/api/session',sessionRoutes)
-app.use('/api/interview',interviewRoutes)
+app.use("/api/chat", chatRoutes)
+app.use('/api/session', sessionRoutes)
+app.use('/api/interview', interviewRoutes)
 
 
 app.get("/books", (req, res) => {
@@ -72,27 +72,26 @@ app.get("/books", (req, res) => {
 
 // when you pass an array of middleware  to express,it automatically flattens and
 // executes them sequensially one by one
-app.get('/api/video-calls',protectRoute,(req,res)=>{
-  res.status(200).json({message:"this is video end point"})
+app.get('/api/video-calls', protectRoute, (req, res) => {
+  res.status(200).json({ message: "this is video end point" })
 })
 
-// Serve frontend static files (works in both development and production)
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// Serve frontend static files (only if exists, mostly for local dev if monolithic)
+if (process.env.NODE_ENV === "production") {
+  app.get("/", (req, res) => {
+    res.status(200).json({ message: "API is running successfully" });
+  });
+} else {
+  // In development, we might still want to serve if we built it, but mostly we use Vite dev server
+  app.get("/", (req, res) => {
+    res.status(200).json({ message: "API is running in Development mode" });
+  });
+}
 
-// Serve React app for root path
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
-});
-
-// Catch-all route to serve React app for any non-API routes
-// Exclude /api routes - they should be handled above
-app.use((req, res, next) => {
-  // If it's an API route, don't serve the React app
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: "API route not found" });
-  }
-  // Otherwise serve the React app
-  res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+// Catch-all is not needed for API-only backend on Render
+// But if you want to catch 404s for API:
+app.use((req, res) => {
+  res.status(404).json({ error: "Route not found" });
 });
 
 const startServer = async () => {
@@ -102,7 +101,7 @@ const startServer = async () => {
       console.log(`server is running at ${PORT}`);
     });
   } catch (err) {
-        console.error("error in starting the server 💥" ,err)
+    console.error("error in starting the server 💥", err)
   }
 };
 
