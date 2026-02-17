@@ -1,6 +1,6 @@
-# Talent-IQ
+# DevPrep.AI
 
-**Talent-IQ** is a cutting-edge, AI-powered interview preparation platform designed to help candidates master their technical and behavioral interviews. By leveraging advanced AI models and real-time voice interaction, Talent-IQ simulates realistic interview scenarios, providing immediate feedback and actionable insights.
+**DevPrep.AI** is a cutting-edge, AI-powered interview preparation platform designed to help candidates master their technical and behavioral interviews. By leveraging advanced AI models and real-time voice interaction, DevPrep.AI simulates realistic interview scenarios, providing immediate feedback and actionable insights.
 
 ## 🚀 Key Features
 
@@ -36,7 +36,7 @@
 ## 📂 Project Structure
 
 ```
-Talent-IQ/
+DevPrep.AI/
 ├── backend/                # Node.js/Express Server
 │   ├── src/
 │   │   ├── controllers/    # Request handlers (Interview, Chat, Session, Webhook)
@@ -71,8 +71,8 @@ Before you begin, ensure you have the following installed:
 
 1.  **Clone the Repository**
     ```bash
-    git clone https://github.com/yourusername/Talent-IQ.git
-    cd Talent-IQ
+    git clone https://github.com/yourusername/DevPrep.AI.git
+    cd DevPrep.AI
     ```
 
 2.  **Install Dependencies**
