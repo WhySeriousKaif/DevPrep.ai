@@ -2,7 +2,6 @@ export const initialResumeData = {
   name: "",
   email: "",
   phone: "",
-  location: "",
   linkedin: "",
   github: "",
   leetcode: "",
@@ -48,7 +47,13 @@ export const emptyProject = () => ({
   bullets: [],
 });
 
-export const emptyEducation = () => ({ school: "", degree: "", branch: "", cgpa: "", location: "", duration: "" });
+export const emptyEducation = () => ({
+  school: "",
+  degree: "",
+  branch: "",
+  cgpa: "",
+  duration: "",
+});
 
 export const emptyVolunteering = () => ({
   role: "",

@@ -4,13 +4,15 @@ function WelcomeSection() {
   const { user } = useUser();
 
   return (
-    <div className="h-full flex flex-col justify-center">
-      <h1 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
-        Hello, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{user?.firstName || "Dev"}</span>
-        <span className="inline-block animate-wave ml-2">👋</span>
-      </h1>
-      <p className="text-sm text-base-content/60 font-medium">
-        Ready to code? You've got this.
+    <div>
+      <h2 className="text-xl sm:text-2xl font-bold text-white">
+        Hello,{" "}
+        <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-secondary">
+          {user?.firstName || "Dev"}
+        </span>
+      </h2>
+      <p className="text-sm text-base-content/50 mt-1">
+        Ready to code? You&apos;re about to level up your skills.
       </p>
     </div>
   );

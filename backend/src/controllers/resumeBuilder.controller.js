@@ -4,6 +4,7 @@ import {
   enhanceResume,
   compressResume,
   sanitizeEnhancedResume,
+  chatResumeData,
 } from "../utils/geminiResume.js";
 import { renderModernProfessional } from "../latex/templates/modernProfessional.js";
 import { compileLatex } from "../latex/compile.js";
@@ -14,16 +15,24 @@ const MAX_COMPRESS_ATTEMPTS = 2;
 // second template later a one-line addition instead of a refactor.
 const renderTemplate = (resumeData) => renderModernProfessional(resumeData);
 
-const compileResumeData = (resumeData) => compileLatex(renderTemplate(resumeData));
+const compileResumeData = (resumeData) =>
+  compileLatex(renderTemplate(resumeData));
 
 export const refineDescription = async (req, res) => {
   try {
     const { title, role, description, mode } = req.body;
     if (!description || !description.trim()) {
-      return res.status(400).json({ success: false, message: "Description is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Description is required" });
     }
 
-    const bullets = await refineResumeBullets({ title, role, description, mode });
+    const bullets = await refineResumeBullets({
+      title,
+      role,
+      description,
+      mode,
+    });
     res.status(200).json({ success: true, bullets });
   } catch (error) {
     console.error("Error refining resume description:", error);
@@ -35,7 +44,9 @@ export const categorizeSkills = async (req, res) => {
   try {
     const { skills } = req.body;
     if (!skills || !skills.trim()) {
-      return res.status(400).json({ success: false, message: "Skills are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Skills are required" });
     }
 
     const categories = await categorizeResumeSkills(skills);
@@ -53,7 +64,9 @@ export const generateResume = async (req, res) => {
   try {
     const { resumeData, targetPages = 1 } = req.body;
     if (!resumeData || typeof resumeData !== "object") {
-      return res.status(400).json({ success: false, message: "resumeData is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "resumeData is required" });
     }
 
     const enhanced = await enhanceResume(resumeData, targetPages);
@@ -63,7 +76,11 @@ export const generateResume = async (req, res) => {
 
     let attempts = 0;
     while (pageCount > targetPages && attempts < MAX_COMPRESS_ATTEMPTS) {
-      const compressed = await compressResume(finalData, pageCount, targetPages);
+      const compressed = await compressResume(
+        finalData,
+        pageCount,
+        targetPages,
+      );
       finalData = sanitizeEnhancedResume(compressed, finalData);
       ({ pdfBuffer, pageCount } = await compileResumeData(finalData));
       attempts += 1;
@@ -88,13 +105,53 @@ export const compilePreview = async (req, res) => {
   try {
     const { resumeData } = req.body;
     if (!resumeData || typeof resumeData !== "object") {
-      return res.status(400).json({ success: false, message: "resumeData is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "resumeData is required" });
     }
 
     const { pdfBuffer, pageCount } = await compileResumeData(resumeData);
-    res.status(200).json({ success: true, pdfBase64: pdfBuffer.toString("base64"), pageCount });
+    res
+      .status(200)
+      .json({
+        success: true,
+        pdfBase64: pdfBuffer.toString("base64"),
+        pageCount,
+      });
   } catch (error) {
     console.error("Error compiling resume:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const chatResume = async (req, res) => {
+  try {
+    const { resumeData, message } = req.body;
+    if (!resumeData || typeof resumeData !== "object") {
+      return res
+        .status(400)
+        .json({ success: false, message: "resumeData is required" });
+    }
+    if (!message || !message.trim()) {
+      return res
+        .status(400)
+        .json({ success: false, message: "A message is required" });
+    }
+
+    const enhanced = await chatResumeData(resumeData, message);
+    const finalData = sanitizeEnhancedResume(enhanced, resumeData);
+    const { pdfBuffer, pageCount } = await compileResumeData(finalData);
+
+    res.status(200).json({
+      success: true,
+      resumeData: finalData,
+      pdfBase64: pdfBuffer.toString("base64"),
+      pageCount,
+      fitsTarget: pageCount <= (resumeData.targetPages || 1),
+      assistantMessage: "Gemini updated your resume and refreshed the preview.",
+    });
+  } catch (error) {
+    console.error("Error chatting with resume Gemini:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

@@ -1,67 +1,12 @@
 // Gemini AI integration for resume builder (bullet refinement + skill categorization)
-import { ENV } from "../libs/env.js";
+// Uses the shared aiClient which tries Gemini first and falls back to OpenAI.
+import { callAI } from "./aiClient.js";
 
-const GEMINI_API_KEY = ENV.GEMINI_API_KEY || "";
-const GEMINI_MODEL = "gemini-2.5-flash";
-
-const callGemini = async (prompt, { maxOutputTokens = 2048 } = {}) => {
-  if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is not configured");
-  }
-
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.4,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens,
-        // gemini-2.5-flash spends its token budget on hidden "thinking" tokens by
-        // default, which starves plain structured-JSON tasks like these of output
-        // tokens and truncates the response. Disable it for deterministic JSON.
-        thinkingConfig: { thinkingBudget: 0 },
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  const responseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-  if (!responseText) {
-    const finishReason = data?.candidates?.[0]?.finishReason;
-    throw new Error(
-      finishReason === "MAX_TOKENS"
-        ? "Gemini response was cut off (ran out of tokens) — try a shorter description"
-        : "Invalid response from Gemini API"
-    );
-  }
-
-  let jsonText = responseText;
-  if (jsonText.includes("```json")) {
-    jsonText = jsonText.split("```json")[1].split("```")[0].trim();
-  } else if (jsonText.includes("```")) {
-    jsonText = jsonText.split("```")[1].split("```")[0].trim();
-  }
-
-  try {
-    return JSON.parse(jsonText);
-  } catch {
-    throw new Error("Gemini returned a malformed response — please try again");
-  }
-};
 
 const REFINE_MODE_RULES = {
   polish: "Produce 2-4 concise, achievement-oriented bullet points.",
-  shorten: "Produce at most 2 bullet points, as tight and concise as possible while keeping the key achievement.",
+  shorten:
+    "Produce at most 2 bullet points, as tight and concise as possible while keeping the key achievement.",
   ats: "Produce 2-4 bullet points that front-load keywords and quantifiable metrics, optimized for ATS keyword scanning.",
 };
 
@@ -70,7 +15,12 @@ const REFINE_MODE_RULES = {
  * into concise, achievement-oriented resume bullet points. `mode` controls the
  * style: "polish" (default), "shorten", or "ats".
  */
-export const refineResumeBullets = async ({ title, role, description, mode = "polish" }) => {
+export const refineResumeBullets = async ({
+  title,
+  role,
+  description,
+  mode = "polish",
+}) => {
   const context = [role, title].filter(Boolean).join(" ");
   const modeRule = REFINE_MODE_RULES[mode] || REFINE_MODE_RULES.polish;
   const prompt = `You are an expert resume writer. Rewrite the following raw, informal description of ${
@@ -91,7 +41,7 @@ RULES:
 
 Return ONLY valid JSON in this exact shape: {"bullets": ["...", "..."]}`;
 
-  const result = await callGemini(prompt);
+  const result = await callAI(prompt);
   if (!Array.isArray(result.bullets) || result.bullets.length === 0) {
     throw new Error("Invalid refinement response");
   }
@@ -112,7 +62,7 @@ Group these into sensible categories. Prefer these category names when they fit:
 
 Return ONLY valid JSON in this exact shape: {"categories": [{"name": "Languages", "skills": ["Java", "Python"]}, ...]}, ordered with the most foundational categories first, and omit any category that would be empty.`;
 
-  const result = await callGemini(prompt);
+  const result = await callAI(prompt);
   if (!Array.isArray(result.categories)) {
     throw new Error("Invalid categorization response");
   }
@@ -159,14 +109,18 @@ ${JSON.stringify(resumeData)}
 
 Return ONLY the updated JSON object with the exact same shape as above — no markdown, no explanation, no extra keys.`;
 
-  return callGemini(prompt, { maxOutputTokens: 8192 });
+  return callAI(prompt, { maxOutputTokens: 8192 });
 };
 
 /**
  * Used by the fit loop when a compiled resume is still longer than the user's
  * chosen page budget: cuts it down further. Same output contract as enhanceResume.
  */
-export const compressResume = async (resumeData, currentPageCount, targetPages) => {
+export const compressResume = async (
+  resumeData,
+  currentPageCount,
+  targetPages,
+) => {
   const prompt = `You are an expert resume editor. This resume currently compiles to ${currentPageCount} page(s), but the user wants it to fit in ${targetPages} page(s). Cut it down further: reduce bullet counts per entry (prefer 1-2 over 3+), tighten wording, condense or remove the summary if needed, and drop the least important/least impactful projects, experience entries, or achievements entirely if necessary. Preserve the strongest, most quantified, most relevant content. Do not invent facts.
 
 ${RESUME_JSON_CONTRACT}
@@ -176,16 +130,38 @@ ${JSON.stringify(resumeData)}
 
 Return ONLY the updated JSON object with the exact same shape as above — no markdown, no explanation, no extra keys.`;
 
-  return callGemini(prompt, { maxOutputTokens: 8192 });
+  return callAI(prompt, { maxOutputTokens: 8192 });
+};
+
+export const chatResumeData = async (resumeData, message) => {
+  const prompt = `You are an expert resume assistant. The user wants to edit or improve their resume based on this message:
+
+USER REQUEST:
+${message}
+
+Use the current resume JSON below. Apply the user's request to the resume content, updating or refining the resume data as needed. Do not invent facts or add information that isn't implied by the existing content. Keep the output in the exact same JSON shape.
+
+${RESUME_JSON_CONTRACT}
+
+CURRENT RESUME DATA:
+${JSON.stringify(resumeData)}
+
+Return ONLY the updated JSON object with the exact same shape as above. No markdown, no explanation, no extra keys.`;
+
+  return callAI(prompt, { maxOutputTokens: 8192 });
 };
 
 const asString = (v, fallback = "") => (typeof v === "string" ? v : fallback);
-const asStringArray = (v) => (Array.isArray(v) ? v.filter((s) => typeof s === "string") : []);
+const asStringArray = (v) =>
+  Array.isArray(v) ? v.filter((s) => typeof s === "string") : [];
 
 const sanitizeEntry = (entry, keys) => {
   const out = {};
   for (const key of keys) {
-    out[key] = key === "bullets" ? asStringArray(entry?.bullets) : asString(entry?.[key]);
+    out[key] =
+      key === "bullets"
+        ? asStringArray(entry?.bullets)
+        : asString(entry?.[key]);
   }
   return out;
 };
@@ -199,8 +175,17 @@ export const sanitizeEnhancedResume = (enhanced, original) => {
   if (!enhanced || typeof enhanced !== "object") return original;
 
   const scalarFields = [
-    "name", "email", "phone", "location", "linkedin", "github",
-    "leetcode", "codeforces", "codechef", "summary", "skills",
+    "name",
+    "email",
+    "phone",
+    "location",
+    "linkedin",
+    "github",
+    "leetcode",
+    "codeforces",
+    "codechef",
+    "summary",
+    "skills",
   ];
   const sanitized = { ...original };
 
@@ -218,22 +203,49 @@ export const sanitizeEnhancedResume = (enhanced, original) => {
 
   if (Array.isArray(enhanced.experience)) {
     sanitized.experience = enhanced.experience.map((e) =>
-      sanitizeEntry(e, ["company", "role", "duration", "description", "bullets"])
+      sanitizeEntry(e, [
+        "company",
+        "role",
+        "duration",
+        "description",
+        "bullets",
+      ]),
     );
   }
   if (Array.isArray(enhanced.projects)) {
     sanitized.projects = enhanced.projects.map((p) =>
-      sanitizeEntry(p, ["name", "techStack", "github", "duration", "description", "bullets"])
+      sanitizeEntry(p, [
+        "name",
+        "techStack",
+        "github",
+        "duration",
+        "description",
+        "bullets",
+      ]),
     );
   }
   if (Array.isArray(enhanced.education)) {
     sanitized.education = enhanced.education.map((e) =>
-      sanitizeEntry(e, ["school", "degree", "branch", "cgpa", "location", "duration"])
+      sanitizeEntry(e, [
+        "school",
+        "degree",
+        "branch",
+        "cgpa",
+        "location",
+        "duration",
+      ]),
     );
   }
   if (Array.isArray(enhanced.volunteering)) {
     sanitized.volunteering = enhanced.volunteering.map((v) =>
-      sanitizeEntry(v, ["role", "organization", "duration", "location", "description", "bullets"])
+      sanitizeEntry(v, [
+        "role",
+        "organization",
+        "duration",
+        "location",
+        "description",
+        "bullets",
+      ]),
     );
   }
   if (Array.isArray(enhanced.achievements)) {
@@ -279,7 +291,7 @@ RULES:
 - If a field genuinely isn't present in the resume, use an empty string or empty array rather than guessing.
 - Every field must exist. Return no markdown, no explanation, no extra keys.`;
 
-  const result = await callGemini(prompt, { maxOutputTokens: 4096 });
+  const result = await callAI(prompt, { maxOutputTokens: 4096 });
 
   return {
     name: asString(result.name),
@@ -295,6 +307,9 @@ RULES:
     missingSkills: asStringArray(result.missingSkills),
     suggestedRole: asString(result.suggestedRole),
     recommendations: asStringArray(result.recommendations),
-    score: typeof result.score === "number" ? Math.max(0, Math.min(100, Math.round(result.score))) : 0,
+    score:
+      typeof result.score === "number"
+        ? Math.max(0, Math.min(100, Math.round(result.score)))
+        : 0,
   };
 };

@@ -1,20 +1,11 @@
 // Gemini AI integration for interview analysis
-import { ENV } from "../libs/env.js";
-
-const GEMINI_API_KEY = ENV.GEMINI_API_KEY || "";
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
-
-// Alternative: gemini-2.5-pro
-const GEMINI_MODEL = "gemini-2.5-flash";
+// Uses the shared aiClient which tries Gemini first and falls back to OpenAI.
+import { callAI } from "./aiClient.js";
 
 /**
  * Analyze interview transcript and generate feedback
  */
 export const analyzeInterview = async (transcript, role, experience, topics, interviewType) => {
-  if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is not configured");
-  }
-
   const prompt = `You are an expert interview evaluator analyzing a ${interviewType} interview transcript.
 
 INTERVIEW DETAILS:
@@ -55,57 +46,7 @@ IMPORTANT:
 Return ONLY valid JSON, no additional text.`;
 
   try {
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-          // gemini-2.5-flash spends its token budget on hidden "thinking" tokens by
-          // default, which can starve structured-JSON output and truncate the response.
-          thinkingConfig: { thinkingBudget: 0 },
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error("Invalid response from Gemini API");
-    }
-
-    const responseText = data.candidates[0].content.parts[0].text.trim();
-
-    // Extract JSON from response (might have markdown code blocks)
-    let jsonText = responseText;
-    if (responseText.includes("```json")) {
-      jsonText = responseText.split("```json")[1].split("```")[0].trim();
-    } else if (responseText.includes("```")) {
-      jsonText = responseText.split("```")[1].split("```")[0].trim();
-    }
-
-    const analysis = JSON.parse(jsonText);
+    const analysis = await callAI(prompt, { maxOutputTokens: 2048, temperature: 0.7 });
 
     // Validate analysis structure
     if (!analysis.score && analysis.score !== 0) {
@@ -121,8 +62,7 @@ Return ONLY valid JSON, no additional text.`;
       detailedFeedback: analysis.detailedFeedback || "",
     };
   } catch (error) {
-    console.error("Error analyzing interview with Gemini:", error);
+    console.error("Error analyzing interview:", error);
     throw error;
   }
 };
-

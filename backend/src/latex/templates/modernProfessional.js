@@ -6,6 +6,7 @@ const PREAMBLE = String.raw`\documentclass[letterpaper,10.5pt]{article}
 \usepackage[empty]{fullpage}
 \usepackage{titlesec}
 \usepackage[usenames,dvipsnames]{color}
+\usepackage{amssymb}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fancyhdr}
@@ -30,7 +31,7 @@ const PREAMBLE = String.raw`\documentclass[letterpaper,10.5pt]{article}
 
 \titleformat{\section}{\vspace{-4pt}\scshape\raggedright\large}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
 
-\newcommand{\resumeItem}[1]{\item\small{#1 \vspace{-2pt}}}
+\newcommand{\resumeItem}[1]{\item[\textbullet]\small{#1 \vspace{-2pt}}}
 
 \newcommand{\resumeSubheading}[4]{
   \vspace{-2pt}\item
@@ -44,6 +45,16 @@ const PREAMBLE = String.raw`\documentclass[letterpaper,10.5pt]{article}
     \item
     \begin{tabular*}{0.98\textwidth}{l@{\extracolsep{\fill}}r}
       \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+% Project heading with an optional tech-stack line on the second row
+% so the title and tech stack never overlap.
+\newcommand{\resumeProjectHeadingTwo}[3]{
+    \item
+    \begin{tabular*}{0.98\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+      \multicolumn{2}{l}{\small\textit{#3}} \\
     \end{tabular*}\vspace{-7pt}
 }
 
@@ -89,10 +100,12 @@ const section = (title, body) => {
 
 function buildHeader(data) {
   const name = esc(data.name || "Your Name");
+  // Wrap phone in \mbox so a leading + is processed as plain text, not as
+  // a math-mode operator. Use $|$ (not \|) as the separator — \| is
+  // \Vert (math only) and causes "Missing $ inserted" in text mode.
   const contactParts = [
-    data.phone && esc(data.phone),
+    data.phone && `\\mbox{${esc(data.phone)}}`,
     data.email && href(`mailto:${data.email}`, data.email),
-    data.location && esc(data.location),
     data.linkedin && href(data.linkedin, "LinkedIn"),
     data.github && href(data.github, "GitHub"),
     data.leetcode && href(data.leetcode, "LeetCode"),
@@ -101,16 +114,19 @@ function buildHeader(data) {
   ].filter(Boolean);
 
   return `\\begin{center}
-    \\textbf{\\Huge \\scshape ${name}} \\\\ \\vspace{1pt}
+    \\textbf{\\Huge \\scshape ${name}} \\vspace{1pt}\\\\
     \\small ${contactParts.join(" $|$ ")}
-\\end{center}
+  \\end{center}
 `;
 }
+
 
 function buildEducation(education) {
   if (!education?.length) return "";
   const rows = education.map((edu) => {
-    const subtitle = [edu.degree, edu.branch].filter(Boolean).join(edu.degree && edu.branch ? " in " : "");
+    const subtitle = [edu.degree, edu.branch]
+      .filter(Boolean)
+      .join(edu.degree && edu.branch ? " in " : "");
     const bullets = edu.cgpa ? [`CGPA: ${edu.cgpa}`] : [];
     return [
       `\\resumeSubheading{${esc(edu.school || "School / University")}}{${esc(edu.duration)}}{${esc(subtitle)}}{${esc(edu.location)}}`,
@@ -125,14 +141,29 @@ function buildEducation(education) {
 function buildProjects(projects) {
   if (!projects?.length) return "";
   const rows = projects.map((proj) => {
-    const titleText = proj.github ? href(proj.github, proj.name || "Project") : esc(proj.name || "Project");
-    const heading = proj.techStack
-      ? `\\textbf{${titleText}} $|$ \\emph{\\small ${esc(proj.techStack)}}`
-      : `\\textbf{${titleText}}`;
-    const bullets = proj.bullets?.length ? proj.bullets : fallbackBullets(proj.description);
+    const titleText = proj.github
+      ? href(proj.github, proj.name || "Project")
+      : esc(proj.name || "Project");
+    const heading = `\\textbf{${titleText}}`;
+    // Prepare bullets, ensuring any leading dash is replaced with a dot
+    const rawBullets = proj.bullets?.length
+      ? proj.bullets
+      : fallbackBullets(proj.description);
+    const bullets = rawBullets.map((b) => b.replace(/^\-\s*/, "• "));
+
+    // Use \resumeProjectHeadingTwo (title + tech stack in one tabular) when
+    // a tech stack is present — this avoids the overlap caused by the
+    // \vspace{-7pt} at the end of \resumeProjectHeading pulling the external
+    // tech-stack line up into the title row.
+    const projectLine = proj.techStack
+      ? `\\resumeProjectHeadingTwo{${heading}}{${esc(proj.duration)}}{Tech Stack: ${esc(proj.techStack)}}`
+      : `\\resumeProjectHeading{${heading}}{${esc(proj.duration)}}`;
+
     return [
-      `\\resumeProjectHeading{${heading}}{${esc(proj.duration)}}`,
-      bullets.length ? `\\resumeItemListStart\n${bullets.map((b) => `\\resumeItem{${esc(b)}}`).join("\n")}\n\\resumeItemListEnd` : "",
+      projectLine,
+      bullets.length
+        ? `\\resumeItemListStart\n${bullets.map((b) => `\\resumeItem{${esc(b)}}`).join("\n")}\n\\resumeItemListEnd`
+        : "",
     ]
       .filter(Boolean)
       .join("\n");
@@ -143,10 +174,14 @@ function buildProjects(projects) {
 function buildExperience(experience) {
   if (!experience?.length) return "";
   const rows = experience.map((exp) => {
-    const bullets = exp.bullets?.length ? exp.bullets : fallbackBullets(exp.description);
+    const bullets = exp.bullets?.length
+      ? exp.bullets
+      : fallbackBullets(exp.description);
     return [
       `\\resumeSubheading{${esc(exp.role || "Role")}}{${esc(exp.duration)}}{${esc(exp.company)}}{}`,
-      bullets.length ? `\\resumeItemListStart\n${bullets.map((b) => `\\resumeItem{${esc(b)}}`).join("\n")}\n\\resumeItemListEnd` : "",
+      bullets.length
+        ? `\\resumeItemListStart\n${bullets.map((b) => `\\resumeItem{${esc(b)}}`).join("\n")}\n\\resumeItemListEnd`
+        : "",
     ]
       .filter(Boolean)
       .join("\n");
@@ -157,10 +192,14 @@ function buildExperience(experience) {
 function buildVolunteering(volunteering) {
   if (!volunteering?.length) return "";
   const rows = volunteering.map((vol) => {
-    const bullets = vol.bullets?.length ? vol.bullets : fallbackBullets(vol.description);
+    const bullets = vol.bullets?.length
+      ? vol.bullets
+      : fallbackBullets(vol.description);
     return [
       `\\resumeSubheading{${esc(vol.role || "Role")}}{${esc(vol.duration)}}{${esc(vol.organization)}}{${esc(vol.location)}}`,
-      bullets.length ? `\\resumeItemListStart\n${bullets.map((b) => `\\resumeItem{${esc(b)}}`).join("\n")}\n\\resumeItemListEnd` : "",
+      bullets.length
+        ? `\\resumeItemListStart\n${bullets.map((b) => `\\resumeItem{${esc(b)}}`).join("\n")}\n\\resumeItemListEnd`
+        : "",
     ]
       .filter(Boolean)
       .join("\n");
@@ -178,7 +217,8 @@ function buildSkills(data) {
 
   if (data.skillCategories?.length) {
     const lines = data.skillCategories.map(
-      (cat) => `     \\textbf{${esc(cat.name)}}{: ${esc(cat.skills.join(", "))}} \\\\`
+      (cat) =>
+        `     \\textbf{${esc(cat.name)}}{: ${esc(cat.skills.join(", "))}} \\\\`,
     );
     return `\\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\n${lines.join("\n")}\n    }}\n\\end{itemize}`;
   }
@@ -195,7 +235,9 @@ function buildAchievements(achievements) {
 export function renderModernProfessional(data) {
   const parts = [
     buildHeader(data),
-    data.summary ? section("Professional Summary", `\\small{${esc(data.summary)}}`) : "",
+    data.summary
+      ? section("Professional Summary", `\\small{${esc(data.summary)}}`)
+      : "",
     section("Education", buildEducation(data.education)),
     section("Projects", buildProjects(data.projects)),
     section("Work Experience", buildExperience(data.experience)),

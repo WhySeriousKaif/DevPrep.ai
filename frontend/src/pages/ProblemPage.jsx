@@ -20,7 +20,9 @@ function ProblemPage() {
 
   const [currentProblemId, setCurrentProblemId] = useState("two-sum");
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
-  const [code, setCode] = useState(PROBLEMS[currentProblemId].starterCode.javascript);
+  const [code, setCode] = useState(
+    PROBLEMS[currentProblemId].starterCode.javascript,
+  );
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
 
@@ -42,7 +44,8 @@ function ProblemPage() {
     setOutput(null);
   };
 
-  const handleProblemChange = (newProblemId) => navigate(`/problem/${newProblemId}`);
+  const handleProblemChange = (newProblemId) =>
+    navigate(`/problem/${newProblemId}`);
 
   const triggerConfetti = () => {
     confetti({
@@ -64,7 +67,7 @@ function ProblemPage() {
           .replace(/\[\s+/g, "[")
           .replace(/\s+\]/g, "]")
           // normalize spaces around commas to single space after comma
-          .replace(/\s*,\s*/g, ",")
+          .replace(/\s*,\s*/g, ","),
       )
       .filter((line) => line.length > 0)
       .join("\n");
@@ -98,12 +101,13 @@ function ProblemPage() {
 
         // Mark as solved in backend
         try {
-          await axiosInstance.post("/user/solve", { problemId: currentProblemId });
+          await axiosInstance.post("/user/solve", {
+            problemId: currentProblemId,
+          });
           toast.success("Problem marked as solved!");
         } catch (error) {
           console.error("Failed to mark problem as solved:", error);
         }
-
       } else {
         toast.error("Tests failed. Check your output!");
         setOutput(result); // Show actual output
@@ -115,13 +119,16 @@ function ProblemPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="min-h-screen flex flex-col overflow-hidden">
       <Navbar />
 
       <div className="flex-1 p-4 pt-0 overflow-hidden">
-        <PanelGroup direction="horizontal" className="h-full rounded-2xl overflow-hidden glass-panel border-0">
+        <PanelGroup
+          direction="horizontal"
+          className="h-full rounded-2xl overflow-hidden glass-panel border-0"
+        >
           {/* left panel- problem desc */}
-          <Panel defaultSize={40} minSize={30}>
+          <Panel defaultSize={45} minSize={30}>
             <ProblemDescription
               problem={currentProblem}
               currentProblemId={currentProblemId}

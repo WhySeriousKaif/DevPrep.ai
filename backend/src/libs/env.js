@@ -16,7 +16,6 @@ export const ENV={
     VAPI_API_KEY:process.env.VAPI_API_KEY,
     VAPI_ASSISTANT_ID:process.env.VAPI_ASSISTANT_ID,
     VAPI_BASE_URL:process.env.VAPI_BASE_URL,
-    GEMINI_API_KEY:process.env.GEMINI_API_KEY
-
-
+    GEMINI_API_KEY:process.env.GEMINI_API_KEY,
+    OPENAI_API_KEY:process.env.OPEN_AI_KEY,
 }
