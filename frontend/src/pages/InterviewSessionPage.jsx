@@ -37,7 +37,8 @@ function InterviewSessionPage() {
       const response = await interviewApi.startInterview(id);
       if (response.success) {
         setInterview(response.interview);
-        toast.success("Interview started!");
+        // No toast here — VapiInterviewRecorder mounts next and shows its own,
+        // more specific feedback once it actually attempts the Vapi connection.
       }
     } catch (error) {
       // console.error("Error starting interview:", error);

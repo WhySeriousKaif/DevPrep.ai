@@ -12,6 +12,8 @@ import SessionPage from "./pages/SessionPage";
 import AIInterviewPage from "./pages/AIInterviewPage";
 import InterviewSessionPage from "./pages/InterviewSessionPage";
 import InterviewResultsPage from "./pages/InterviewResultsPage";
+import ResumeBuilderPage from "./pages/ResumeBuilderPage";
+import ResumeAnalyzerPage from "./pages/ResumeAnalyzerPage";
 
 function App() {
   const { isSignedIn, isLoaded } = useUser();
@@ -38,6 +40,8 @@ function App() {
         <Route path="/ai-interview" element={isSignedIn ? <AIInterviewPage /> : <Navigate to={"/"} />} />
         <Route path="/interview/:id" element={isSignedIn ? <InterviewSessionPage /> : <Navigate to={"/"} />} />
         <Route path="/interview/:id/results" element={isSignedIn ? <InterviewResultsPage /> : <Navigate to={"/"} />} />
+        <Route path="/resume-builder" element={isSignedIn ? <ResumeBuilderPage /> : <Navigate to={"/"} />} />
+        <Route path="/resume-analyzer" element={isSignedIn ? <ResumeAnalyzerPage /> : <Navigate to={"/"} />} />
       </Routes>
 
       <Toaster toastOptions={{ duration: 3000 }} />

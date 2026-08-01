@@ -4,8 +4,8 @@ import { ENV } from "../libs/env.js";
 const GEMINI_API_KEY = ENV.GEMINI_API_KEY || "";
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
 
-// Alternative: gemini-1.5-flash or gemini-1.5-pro
-const GEMINI_MODEL = "gemini-1.5-flash";
+// Alternative: gemini-2.5-pro
+const GEMINI_MODEL = "gemini-2.5-flash";
 
 /**
  * Analyze interview transcript and generate feedback
@@ -77,6 +77,9 @@ Return ONLY valid JSON, no additional text.`;
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048,
+          // gemini-2.5-flash spends its token budget on hidden "thinking" tokens by
+          // default, which can starve structured-JSON output and truncate the response.
+          thinkingConfig: { thinkingBudget: 0 },
         },
       }),
     });

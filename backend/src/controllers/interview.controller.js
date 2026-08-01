@@ -1,6 +1,7 @@
 import Interview from "../models/interview.model.js";
 import { ENV } from "../libs/env.js";
 import { analyzeInterview } from "../utils/gemini.js";
+import { buildInterviewPrompt } from "../utils/interviewPrompt.js";
 
 const VAPI_API_KEY = ENV.VAPI_API_KEY;
 const VAPI_ASSISTANT_ID = ENV.VAPI_ASSISTANT_ID;
@@ -67,7 +68,7 @@ const vapiRequest = async (endpoint, method = "GET", data = null) => {
 // @access  Private
 export const createInterview = async (req, res) => {
   try {
-    const { role, experience, interviewType, topicsToFocus, description } = req.body;
+    const { role, experience, interviewType, topicsToFocus, description, questionCount } = req.body;
     const userId = req.user._id;
 
     // Validate required fields
@@ -78,7 +79,11 @@ export const createInterview = async (req, res) => {
       });
     }
 
-    // Create interview record in database
+    const clampedQuestionCount = Math.min(15, Math.max(3, Number(questionCount) || 8));
+
+    // Create interview record in database. The actual Vapi call is created
+    // client-side (frontend calls /vapi-connection to get assistantOverrides,
+    // then starts the Web SDK call directly) — no need to pre-create a call here.
     const interview = await Interview.create({
       user: userId,
       role,
@@ -86,144 +91,14 @@ export const createInterview = async (req, res) => {
       interviewType: interviewType || "technical",
       topicsToFocus: Array.isArray(topicsToFocus) ? topicsToFocus : [topicsToFocus],
       description: description || "",
+      questionCount: clampedQuestionCount,
       status: "pending",
     });
 
-    // Generate comprehensive system message for VAPI
-    const systemMessage = `You are an experienced technical interviewer conducting a ${interviewType || "technical"} interview for the position of ${role}.
-
-CANDIDATE BACKGROUND:
-- Role Applied For: ${role}
-- Years of Experience: ${experience} years
-- Interview Type: ${interviewType || "technical"}
-- Topics to Focus On: ${topicsToFocus.join(", ")}
-${description ? `- Additional Context: ${description}` : ""}
-
-YOUR ROLE:
-1. Conduct a professional, structured interview
-2. Ask clear, relevant questions based on the candidate's experience level
-3. Probe deeper on technical concepts related to: ${topicsToFocus.join(", ")}
-4. Listen carefully to responses and ask follow-up questions when needed
-5. Provide brief, constructive feedback after key answers
-6. Keep the interview conversational but focused
-7. Allow the candidate time to think before responding
-
-INTERVIEW STRUCTURE:
-- Start with a brief introduction and set expectations
-- Begin with easier questions and gradually increase difficulty
-- For technical interviews, ask about specific technologies, problem-solving, and coding concepts
-- For behavioral interviews, ask about past experiences, challenges, and teamwork
-- End by asking if the candidate has any questions
-
-COMMUNICATION STYLE:
-- Be friendly and professional
-- Speak clearly and at a moderate pace
-- Use natural, conversational language
-- Don't rush the candidate
-- Acknowledge good answers positively
-- If an answer is incomplete, ask clarifying questions
-
-IMPORTANT:
-- Do NOT provide answers or hints - let the candidate demonstrate their knowledge
-- Focus on understanding their thought process
-- Note areas of strength and areas for improvement
-- Keep track of key points discussed for feedback`;
-
-    // Generate first message
-    const firstMessage = interviewType === "behavioral" 
-      ? `Hello! Thank you for taking the time today. I'm calling to conduct your behavioral interview for the ${role} position. I'll be asking you about your past experiences, how you've handled various situations, and your approach to teamwork and problem-solving. We should take about 20-30 minutes. Are you ready to begin?`
-      : interviewType === "mixed"
-      ? `Hello! Thank you for taking the time today. I'm calling to conduct your interview for the ${role} position. This will be a combination of technical and behavioral questions, focusing on ${topicsToFocus.slice(0, 3).join(", ")}. We'll discuss both your technical skills and your past experiences. We should take about 25-35 minutes. Are you ready to begin?`
-      : `Hello! Thank you for taking the time today. I'm calling to conduct your technical interview for the ${role} position. I'll be asking you questions about ${topicsToFocus.slice(0, 3).join(", ")} and your ${experience} years of experience. We should take about 20-30 minutes. Are you ready to begin?`;
-
-    // Create VAPI call for web (using WebRTC)
-    let vapiCallId = "";
-    let vapiError = null;
-    
-    // Check if VAPI credentials are configured
-    // // console.log("[createInterview] Checking VAPI configuration:", {
-    //   hasApiKey: !!VAPI_API_KEY,
-    //   hasAssistantId: !!VAPI_ASSISTANT_ID,
-    //   apiKeyLength: VAPI_API_KEY?.length || 0,
-    // });
-    
-    if (!VAPI_API_KEY || !VAPI_ASSISTANT_ID) {
-      // // console.warn("[createInterview] ⚠️ VAPI not configured - missing API key or Assistant ID");
-      // // console.warn("[createInterview] VAPI_API_KEY:", VAPI_API_KEY ? "SET (hidden)" : "NOT SET");
-      // // console.warn("[createInterview] VAPI_ASSISTANT_ID:", VAPI_ASSISTANT_ID || "NOT SET");
-      vapiError = "VAPI_API_KEY or VAPI_ASSISTANT_ID not configured";
-    } else {
-      try {
-        // Create VAPI call with serverUrl for web integration
-        // Note: For production, use your actual backend URL
-        const webhookUrl = `${ENV.CLIENT_URL || "http://localhost:3001"}/api/interview/webhook`;
-        const vapiCallData = {
-          assistantId: VAPI_ASSISTANT_ID,
-          serverUrl: webhookUrl, // Webhook for transcript updates
-          assistantOverrides: {
-            systemMessage: systemMessage,
-            firstMessage: firstMessage,
-            voice: {
-              provider: "11labs",
-              voiceId: "21m00Tcm4TlvDq8ikWAM", // Default voice, can be changed
-            },
-          },
-          customer: {
-            number: `web_${userId}`, // Web identifier
-          },
-          // Enable WebRTC for browser connection
-          client: {
-            type: "webrtc", // Request WebRTC connection for browser
-          },
-          metadata: {
-            interviewId: interview._id.toString(),
-            userId: userId.toString(),
-            role: role,
-            experience: experience.toString(),
-            interviewType: interviewType,
-            topics: topicsToFocus.join(", "),
-          },
-        };
-
-        // // console.log("[createInterview] Creating VAPI call for web:", {
-        //   assistantId: VAPI_ASSISTANT_ID,
-        //   hasApiKey: !!VAPI_API_KEY,
-        //   webhookUrl,
-        //   metadata: vapiCallData.metadata,
-        // });
-
-        const vapiCall = await vapiRequest("/call", "POST", vapiCallData);
-        // // console.log("[createInterview] VAPI call response:", JSON.stringify(vapiCall, null, 2));
-
-        // Try multiple possible fields for call ID
-        vapiCallId = vapiCall.id || vapiCall.callId || vapiCall.call?.id || "";
-        
-        if (vapiCallId && vapiCallId.trim() !== '') {
-          interview.vapiCallId = vapiCallId;
-          await interview.save();
-          // // console.log("[createInterview] ✅ VAPI call created successfully:", vapiCallId);
-        } else {
-          // // console.error("[createInterview] ❌ VAPI call response missing call ID. Full response:", vapiCall);
-          throw new Error("VAPI call created but no call ID returned in response");
-        }
-      } catch (error) {
-        // // console.error("[createInterview] ❌ Error creating VAPI call:", error);
-        // // console.error("[createInterview] Error details:", {
-        //   message: error.message,
-        //   stack: error.stack,
-        //   response: error.response || 'No response',
-        // });
-        vapiError = error.message || "Failed to create VAPI call";
-        // Continue without failing the interview creation
-      }
-    }
-
     res.status(201).json({
       success: true,
-      message: vapiError ? "Interview created but VAPI call failed. Check configuration." : "Interview session created successfully.",
+      message: "Interview session created successfully.",
       interview,
-      vapiCallId,
-      error: vapiError || null,
     });
   } catch (error) {
     // // console.error("Error in createInterview:", error);
@@ -492,57 +367,35 @@ export const getVapiConnection = async (req, res) => {
     const { id } = req.params;
     const userId = req.user._id;
 
-    // console.log(`[getVapiConnection] Request received for interview ${id}, user ${userId}`);
-
     const interview = await Interview.findOne({
       _id: id,
       user: userId,
     });
 
     if (!interview) {
-      // console.log(`[getVapiConnection] Interview ${id} not found for user ${userId}`);
       return res.status(404).json({
         success: false,
         message: "Interview not found",
       });
     }
 
-    // For web SDK, we can return assistantId even without a call
-    // The frontend can start a new call directly with assistantId
-    if (!interview.vapiCallId || interview.vapiCallId.trim() === '') {
-      // console.log(`[getVapiConnection] Interview ${id} found but no vapiCallId - returning assistantId for web SDK`);
-      // Still return success with assistantId for web SDK to start new call
-      return res.status(200).json({
-        success: true,
-        vapiCall: null,
-        callId: null,
-        assistantId: VAPI_ASSISTANT_ID, // Include assistant ID for web SDK to start new call
-        // Include API key for frontend (should be public key, not secret)
-        // Note: In production, use VAPI's public key mechanism
-        apiKey: VAPI_API_KEY,
-        message: "No existing call found, but assistantId provided for web SDK to start new call",
-      });
-    }
+    // Compute the assistant overrides fresh from this interview's own data
+    // every time, so the live call always matches what was actually configured
+    // at setup (role/experience/topics/description/questionCount) — no separate
+    // pre-created Vapi call to fetch or fall out of sync with.
+    const assistantOverrides = buildInterviewPrompt({
+      role: interview.role,
+      experience: interview.experience,
+      interviewType: interview.interviewType,
+      topicsToFocus: interview.topicsToFocus,
+      description: interview.description,
+      questionCount: interview.questionCount,
+    });
 
-    // Get VAPI call details (if call exists)
-    let vapiCall = null;
-    try {
-      vapiCall = await vapiRequest(`/call/${interview.vapiCallId}`);
-    } catch (error) {
-      // console.warn(`[getVapiConnection] Could not fetch call details:`, error.message);
-      // Still return assistantId even if call fetch fails
-    }
-
-    // For browser WebRTC, VAPI provides client connection details
-    // The call object should contain WebRTC SDP offer/answer details
     res.status(200).json({
       success: true,
-      vapiCall,
-      callId: interview.vapiCallId,
-      assistantId: VAPI_ASSISTANT_ID, // Include assistant ID for web SDK
-      // Include API key for frontend (should be public key, not secret)
-      // Note: In production, use VAPI's public key mechanism
-      apiKey: VAPI_API_KEY,
+      assistantId: VAPI_ASSISTANT_ID,
+      assistantOverrides,
     });
   } catch (error) {
     // console.error("[getVapiConnection] Error:", error);

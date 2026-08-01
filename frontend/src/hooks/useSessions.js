@@ -63,3 +63,14 @@ export const useEndSession = () => {
 
   return result;
 };
+
+export const useStartSession = () => {
+  const result = useMutation({
+    mutationKey: ["startSession"],
+    mutationFn: sessionApi.startSession,
+    onSuccess: () => toast.success("Session started!"),
+    onError: (error) => toast.error(error.response?.data?.message || "Failed to start session"),
+  });
+
+  return result;
+};

@@ -16,7 +16,7 @@ function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useUser();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" });
+  const [roomConfig, setRoomConfig] = useState({ title: "", role: "Software Engineer", duration: 60, questions: [], difficulty: "mixed" });
 
   const createSessionMutation = useCreateSession();
 
@@ -24,16 +24,20 @@ function DashboardPage() {
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
 
   const handleCreateRoom = () => {
-    if (!roomConfig.problem || !roomConfig.difficulty) return;
+    if (!roomConfig.questions || roomConfig.questions.length === 0) return;
 
     createSessionMutation.mutate(
       {
-        problem: roomConfig.problem,
-        difficulty: roomConfig.difficulty.toLowerCase(),
+        title: roomConfig.title || "Technical Interview",
+        role: roomConfig.role,
+        duration: roomConfig.duration,
+        questions: roomConfig.questions,
+        difficulty: roomConfig.difficulty,
       },
       {
         onSuccess: (data) => {
           setShowCreateModal(false);
+          setRoomConfig({ title: "", role: "Software Engineer", duration: 60, questions: [], difficulty: "mixed" });
           navigate(`/session/${data.session._id}`);
         },
       }

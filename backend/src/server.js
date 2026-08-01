@@ -11,6 +11,9 @@ import chatRoutes from "./routes/chat.routes.js";
 import sessionRoutes from "./routes/session.routes.js";
 import interviewRoutes from "./routes/interview.routes.js";
 import userRoutes from "./routes/user.route.js";
+import resumeBuilderRoutes from "./routes/resumeBuilder.routes.js";
+import resumeAnalyzerRoutes from "./routes/resumeAnalyzer.routes.js";
+import problemRoutes from "./routes/problem.routes.js";
 
 const app = express();
 
@@ -65,6 +68,9 @@ app.use("/api/chat", chatRoutes)
 app.use('/api/session', sessionRoutes)
 app.use('/api/interview', interviewRoutes)
 app.use('/api/user', userRoutes)
+app.use('/api/resume-builder', resumeBuilderRoutes)
+app.use('/api/resume-analyzer', resumeAnalyzerRoutes)
+app.use('/api/problems', problemRoutes)
 
 
 app.get("/books", (req, res) => {

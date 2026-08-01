@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { BookOpenIcon, LayoutDashboardIcon, SparklesIcon, MicIcon } from "lucide-react";
+import { BookOpenIcon, LayoutDashboardIcon, SparklesIcon, MicIcon, FileTextIcon, FileSearchIcon } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 
 function Navbar() {
@@ -54,6 +54,34 @@ function Navbar() {
           >
             <MicIcon className="size-4" />
             <span className="hidden sm:inline">AI Interview</span>
+          </Link>
+
+          {/* RESUME BUILDER PAGE LINK */}
+          <Link
+            to={"/resume-builder"}
+            className={`px-4 py-2 rounded-xl transition-all duration-300 text-sm font-medium flex items-center gap-2
+              ${isActive("/resume-builder")
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
+                : "hover:bg-white/5 text-base-content/70 hover:text-white"
+              }
+              `}
+          >
+            <FileTextIcon className="size-4" />
+            <span className="hidden sm:inline">Resume Builder</span>
+          </Link>
+
+          {/* RESUME ANALYZER PAGE LINK */}
+          <Link
+            to={"/resume-analyzer"}
+            className={`px-4 py-2 rounded-xl transition-all duration-300 text-sm font-medium flex items-center gap-2
+              ${isActive("/resume-analyzer")
+                ? "bg-primary text-white shadow-lg shadow-primary/25"
+                : "hover:bg-white/5 text-base-content/70 hover:text-white"
+              }
+              `}
+          >
+            <FileSearchIcon className="size-4" />
+            <span className="hidden sm:inline">Resume Analyzer</span>
           </Link>
 
           {/* DASHBOARD PAGE LINK */}

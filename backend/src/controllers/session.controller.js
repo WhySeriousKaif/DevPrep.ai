@@ -4,20 +4,28 @@ import Session from "../models/session.model.js";
 export async function createSession(req, res) {
   try {
 
-    const { problem, difficulty } = req.body;
+    const { title, role, duration, questions, difficulty } = req.body;
     const userId = req.user._id;
     const clerkId = req.user.clerkId;
 
-
-    if (!problem || !difficulty) {
-      return res.status(400).json({ message: "Problem and difficulty are required" });
+    if (!questions || questions.length === 0 || !difficulty) {
+      return res.status(400).json({ message: "Questions array and difficulty are required" });
     }
 
     // generate a unique call id for stream video
     const callId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     // create session in db
-    const session = await Session.create({ problem, difficulty, host: userId, callId });
+    const session = await Session.create({
+      title,
+      role,
+      duration,
+      questions,
+      difficulty,
+      host: userId,
+      callId,
+      status: "pending", // Wait for host to start the interview
+    });
 
     // create stream video call (if Stream is configured)
     // create stream video call (if Stream is configured)
@@ -39,7 +47,7 @@ export async function createSession(req, res) {
     try {
       if (chatClient) {
         const channel = chatClient.channel("messaging", callId, {
-          name: `${problem} Session`,
+          name: `${title || "Coding"} Session`,
           created_by_id: clerkId,
           members: [clerkId],
         });
@@ -58,7 +66,7 @@ export async function createSession(req, res) {
 
 export async function getActiveSessions(_, res) {
   try {
-    const sessions = await Session.find({ status: "active" })
+    const sessions = await Session.find({ status: { $in: ["active", "pending"] } })
       .populate("host", "name profileImage email clerkId")
       .populate("participant", "name profileImage email clerkId")
       .sort({ createdAt: -1 })
@@ -117,7 +125,7 @@ export async function joinSession(req, res) {
 
     if (!session) return res.status(404).json({ message: "Session not found" });
 
-    if (session.status !== "active") {
+    if (session.status === "completed") {
       return res.status(400).json({ message: "Cannot join a completed session" });
     }
 
@@ -142,6 +150,39 @@ export async function joinSession(req, res) {
     res.status(200).json({ session });
   } catch (error) {
     console.log("Error in joinSession controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function startSession(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const session = await Session.findById(id);
+
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    // check if user is the host
+    if (session.host.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Only the host can start the session" });
+    }
+
+    if (session.status === "active") {
+      return res.status(400).json({ message: "Session is already active" });
+    }
+
+    if (session.status === "completed") {
+      return res.status(400).json({ message: "Session is already completed" });
+    }
+
+    session.status = "active";
+    session.startTime = new Date();
+    await session.save();
+
+    res.status(200).json({ session, message: "Session started successfully" });
+  } catch (error) {
+    console.log("Error in startSession controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

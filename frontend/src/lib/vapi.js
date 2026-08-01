@@ -1,5 +1,4 @@
 // VAPI Web SDK Integration for Browser
-// Simplified version matching DentWise working implementation
 
 // Suppress VAPI SDK console warnings
 const originalWarn = console.warn;
@@ -25,169 +24,124 @@ export const vapi = apiKey ? new Vapi(apiKey) : {
 };
 
 /**
- * Initialize and connect to VAPI call using Web SDK
- * Simplified version - just start with assistantId
- * IMPORTANT: Event listeners are on the vapi instance, NOT the call object!
+ * Initialize and connect to VAPI call using Web SDK.
+ *
+ * Vapi's Web SDK (built on Daily.co) plays the assistant's voice
+ * automatically once the call connects — there's no "audio"/"stream" event
+ * to listen for (those don't exist in the SDK). What we do need to handle
+ * ourselves: `vapi.start()` resolves to `null` (not a rejected promise) when
+ * the call fails to start, and Vapi emits a `call-start-failed` event with
+ * the reason — both must be checked, or a failed call silently looks like
+ * a successful one with no audio.
  */
-export async function connectToVapiCall(assistantId, onAudioStream, onTranscript) {
+export async function connectToVapiCall(assistantId, assistantOverrides, onAudioStream, onTranscript) {
+  if (!apiKey) {
+    throw new Error("VAPI API key not configured. Please set VITE_VAPI_API_KEY in your environment variables.");
+  }
+  if (!assistantId) {
+    throw new Error("Assistant ID is required");
+  }
+
+  const cleanupHandlers = [];
+  let startFailure = null;
+
+  const handleCallStart = () => {};
+  vapi.on("call-start", handleCallStart);
+  cleanupHandlers.push(() => vapi.off("call-start", handleCallStart));
+
+  const handleCallEnd = () => {};
+  vapi.on("call-end", handleCallEnd);
+  cleanupHandlers.push(() => vapi.off("call-end", handleCallEnd));
+
+  const handleSpeechStart = () => {};
+  vapi.on("speech-start", handleSpeechStart);
+  cleanupHandlers.push(() => vapi.off("speech-start", handleSpeechStart));
+
+  const handleSpeechEnd = () => {};
+  vapi.on("speech-end", handleSpeechEnd);
+  cleanupHandlers.push(() => vapi.off("speech-end", handleSpeechEnd));
+
+  const handleMessage = (messageEvent) => {
+    if (messageEvent?.type === "transcript" && messageEvent?.transcriptType === "final") {
+      onTranscript?.(messageEvent.transcript);
+    }
+  };
+  vapi.on("message", handleMessage);
+  cleanupHandlers.push(() => vapi.off("message", handleMessage));
+
+  const handleCallStartFailed = (event) => {
+    startFailure = event;
+    console.error("[VAPI] call-start-failed:", event);
+  };
+  vapi.on("call-start-failed", handleCallStartFailed);
+  cleanupHandlers.push(() => vapi.off("call-start-failed", handleCallStartFailed));
+
+  const handleError = (error) => {
+    console.error("[VAPI] error event:", error);
+  };
+  vapi.on("error", handleError);
+  cleanupHandlers.push(() => vapi.off("error", handleError));
+
+  // Grabs the assistant's remote audio track (via the underlying Daily call
+  // object) purely so we can mix it into our own local recording — Vapi/Daily
+  // already plays it out loud automatically, independent of this.
+  const attachRemoteAudioTrack = () => {
+    const daily = vapi.getDailyCallObject?.();
+    if (!daily || !onAudioStream) return;
+    const participants = daily.participants();
+    const remote = Object.values(participants || {}).find((p) => !p.local);
+    if (remote?.audioTrack) {
+      onAudioStream(new MediaStream([remote.audioTrack]));
+    }
+  };
+  vapi.on("daily-participant-updated", attachRemoteAudioTrack);
+  cleanupHandlers.push(() => vapi.off("daily-participant-updated", attachRemoteAudioTrack));
+
+  const cleanupAll = () => cleanupHandlers.forEach((fn) => fn());
+
+  let callResult;
   try {
-    // console.log("[VAPI] Connecting with assistantId:", assistantId);
-    
-    // Check if VAPI is configured
-    if (!apiKey) {
-      throw new Error("VAPI API key not configured. Please set VITE_VAPI_API_KEY in your environment variables.");
+    callResult = await vapi.start(assistantId, assistantOverrides);
+  } catch (error) {
+    cleanupAll();
+    throw error;
+  }
+
+  if (!callResult) {
+    // call-start-failed can arrive slightly after vapi.start() resolves to
+    // null — give it a brief window so the real reason is available instead
+    // of always falling back to the generic message.
+    if (!startFailure) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
+    cleanupAll();
+    const reason = startFailure?.error || startFailure?.message || JSON.stringify(startFailure) || null;
+    console.error("[VAPI] Full call-start-failed payload:", startFailure);
+    throw new Error(
+      reason
+        ? `Vapi call failed to start: ${reason}`
+        : "Vapi call failed to start (no error details from Vapi — check the browser console and Vapi dashboard Logs tab for this attempt)."
+    );
+  }
 
-    if (!assistantId) {
-      throw new Error("Assistant ID is required");
-    }
+  attachRemoteAudioTrack();
 
-    // Set up event handlers on the VAPI instance BEFORE starting the call
-    // This matches DentWise pattern - events come from vapi instance, not call object
-    // console.log("[VAPI] Setting up event handlers on vapi instance...");
-    
-    const cleanupHandlers = [];
+  // Reuse the microphone track Daily/Vapi already captured for the call
+  // itself, instead of requesting a second independent getUserMedia() stream
+  // for local recording. Two concurrent mic captures on the same device is
+  // what triggered the "KrispSDK is duplicated" warning and, very likely, the
+  // call getting ejected a few seconds in.
+  const daily = vapi.getDailyCallObject?.();
+  const localAudioTrack = daily?.participants?.()?.local?.audioTrack;
 
-    // Handle call-start event
-    const handleCallStart = () => {
-      // console.log("[VAPI] ✅ Call started");
-    };
-    vapi.on("call-start", handleCallStart);
-    cleanupHandlers.push(() => vapi.off("call-start", handleCallStart));
+  let userStream = null;
+  let ownsUserStream = false;
 
-    // Handle call-end event
-    const handleCallEnd = () => {
-      // console.log("[VAPI] Call ended");
-    };
-    vapi.on("call-end", handleCallEnd);
-    cleanupHandlers.push(() => vapi.off("call-end", handleCallEnd));
-
-    // Handle speech-start event
-    const handleSpeechStart = () => {
-      // console.log("[VAPI] ✅ AI started speaking");
-    };
-    vapi.on("speech-start", handleSpeechStart);
-    cleanupHandlers.push(() => vapi.off("speech-start", handleSpeechStart));
-
-    // Handle speech-end event
-    const handleSpeechEnd = () => {
-      // console.log("[VAPI] AI stopped speaking");
-    };
-    vapi.on("speech-end", handleSpeechEnd);
-    cleanupHandlers.push(() => vapi.off("speech-end", handleSpeechEnd));
-
-    // Handle message/transcript events (matching DentWise pattern)
-    const handleMessage = (messageEvent) => {
-      // Only log important events, not every message
-      if (messageEvent?.type === "transcript") {
-        if (messageEvent?.transcriptType === "final") {
-          // console.log("[VAPI] ✅ Final transcript:", messageEvent.transcript);
-          if (onTranscript) {
-            onTranscript(messageEvent.transcript);
-          }
-        } else if (messageEvent?.transcriptType === "partial") {
-          // Only log partial transcripts occasionally (not every update)
-          // These are real-time updates, too verbose to log all
-          // if (Math.random() < 0.1) { // Log 10% of partial transcripts
-          //   console.log("[VAPI] Partial transcript update...");
-          // }
-        }
-      } else if (messageEvent?.type === "speech-update" && messageEvent?.status === "started") {
-        // console.log("[VAPI] 🎤 AI started speaking");
-      } else if (messageEvent?.type === "speech-update" && messageEvent?.status === "stopped") {
-        // console.log("[VAPI] 🎤 AI stopped speaking");
-      }
-      // Don't log other message types to reduce console noise
-    };
-    vapi.on("message", handleMessage);
-    cleanupHandlers.push(() => vapi.off("message", handleMessage));
-
-    // Listen for audio stream events - VAPI may emit audio/stream events
-    const handleAudioStream = (stream) => {
-      // console.log("[VAPI] ✅ Audio stream event received:", stream);
-      if (stream && onAudioStream) {
-        if (stream instanceof MediaStream) {
-          onAudioStream(stream);
-        } else if (stream.stream instanceof MediaStream) {
-          onAudioStream(stream.stream);
-        }
-      }
-    };
-    // Try multiple event names VAPI might use for audio
-    vapi.on("audio", handleAudioStream);
-    cleanupHandlers.push(() => vapi.off("audio", handleAudioStream));
-    
-    vapi.on("stream", handleAudioStream);
-    cleanupHandlers.push(() => vapi.off("stream", handleAudioStream));
-
-    // Handle errors
-    const handleError = (error) => {
-      // console.error("[VAPI] Call error:", error);
-    };
-    vapi.on("error", handleError);
-    cleanupHandlers.push(() => vapi.off("error", handleError));
-
-    // Try to get audio stream - VAPI SDK may provide it through various means
-    // Check if vapi instance has audio-related properties
-    if (vapi.remoteStream && onAudioStream) {
-      // console.log("[VAPI] ✅ Found remoteStream on vapi instance");
-      onAudioStream(vapi.remoteStream);
-    }
-
-    // console.log("[VAPI] Starting call with assistantId:", assistantId);
-    
-    // Start the call - VAPI SDK handles WebRTC connection
-    // This matches the DentWise pattern: vapi.start(assistantId)
-    // Note: The call object returned may not have event methods
-    const callResult = await vapi.start(assistantId);
-    // console.log("[VAPI] ✅ Call started successfully");
-    // Reduced logging - only log if debugging is needed
-    // if (process.env.NODE_ENV === "development") {
-    //   console.log("[VAPI] Call result type:", typeof callResult);
-    //   if (callResult) {
-    //     console.log("[VAPI] Call result keys:", Object.keys(callResult));
-    //   }
-    // }
-
-    // Check if call result has audio stream
-    if (callResult?.remoteStream && onAudioStream) {
-      // console.log("[VAPI] ✅ Found remoteStream on call result");
-      onAudioStream(callResult.remoteStream);
-    }
-
-    // Poll for remoteStream on vapi instance (VAPI SDK may set it after connection)
-    // Check multiple times as WebRTC connection takes time
-    let checkCount = 0;
-    const maxChecks = 10;
-    const checkInterval = setInterval(() => {
-      checkCount++;
-      // Only log every 3rd check to reduce noise
-      // if (checkCount % 3 === 0) {
-      //   console.log(`[VAPI] Checking for audio stream (attempt ${checkCount}/${maxChecks})`);
-      // }
-      
-      // Check vapi instance properties
-      if (vapi.remoteStream && onAudioStream) {
-        // console.log("[VAPI] ✅ Found remoteStream on vapi instance");
-        onAudioStream(vapi.remoteStream);
-        clearInterval(checkInterval);
-      } else if (vapi.remoteAudioStream && onAudioStream) {
-        // console.log("[VAPI] ✅ Found remoteAudioStream on vapi instance");
-        onAudioStream(vapi.remoteAudioStream);
-        clearInterval(checkInterval);
-      }
-      
-      if (checkCount >= maxChecks) {
-        // console.warn("[VAPI] ⚠️ Could not find audio stream after multiple checks");
-        clearInterval(checkInterval);
-      }
-    }, 500); // Check every 500ms
-    
-    // Clean up interval on cleanup
-    cleanupHandlers.push(() => clearInterval(checkInterval));
-
-    // Get user's microphone stream for combined recording
-    const userStream = await navigator.mediaDevices.getUserMedia({
+  if (localAudioTrack) {
+    userStream = new MediaStream([localAudioTrack]);
+  } else {
+    // Fallback only if Daily's own track isn't available for some reason.
+    userStream = await navigator.mediaDevices.getUserMedia({
       audio: {
         echoCancellation: true,
         noiseSuppression: true,
@@ -195,38 +149,26 @@ export async function connectToVapiCall(assistantId, onAudioStream, onTranscript
         sampleRate: 48000,
       },
     });
-
-    return {
-      vapi, // Return vapi instance for cleanup
-      callResult, // Return call result if needed
-      userStream,
-      cleanup: () => {
-        // Clean up event listeners
-        cleanupHandlers.forEach(cleanup => cleanup());
-        // Stop the call
-        if (vapi && vapi.stop) {
-          vapi.stop();
-        }
-        // Stop user stream
-        if (userStream) {
-          userStream.getTracks().forEach((track) => track.stop());
-        }
-      },
-      close: () => {
-        // Clean up event listeners
-        cleanupHandlers.forEach(cleanup => cleanup());
-        // Stop the call
-        if (vapi && vapi.stop) {
-          vapi.stop();
-        }
-        // Stop user stream
-        if (userStream) {
-          userStream.getTracks().forEach((track) => track.stop());
-        }
-      },
-    };
-  } catch (error) {
-    // console.error("[VAPI] Error connecting to VAPI:", error);
-    throw error;
+    ownsUserStream = true;
   }
+
+  const closeConnection = () => {
+    cleanupAll();
+    if (vapi && vapi.stop) {
+      vapi.stop();
+    }
+    // Only stop tracks we independently requested — Daily's own track is
+    // torn down by vapi.stop() above, stopping it ourselves would be wrong.
+    if (ownsUserStream && userStream) {
+      userStream.getTracks().forEach((track) => track.stop());
+    }
+  };
+
+  return {
+    vapi,
+    callResult,
+    userStream,
+    cleanup: closeConnection,
+    close: closeConnection,
+  };
 }

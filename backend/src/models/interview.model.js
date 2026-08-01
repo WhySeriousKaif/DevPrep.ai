@@ -28,6 +28,10 @@ const interviewSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    questionCount: {
+      type: Number,
+      default: 8,
+    },
     vapiCallId: {
       type: String,
       default: "",

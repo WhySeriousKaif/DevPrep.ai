@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema({
     },
     solvedProblems: [{
         type: String, // Problem ID
+    }],
+    revisionProblems: [{
+        type: String, // Problem ID marked for later revision
     }]
 
 

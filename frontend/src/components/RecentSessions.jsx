@@ -1,9 +1,13 @@
 import { Code2, Clock, Users, Trophy, Loader } from "lucide-react";
 import { getDifficultyBadgeClass } from "../lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { useState } from "react";
+import PastSessionModal from "./PastSessionModal";
 
 function RecentSessions({ sessions, isLoading }) {
-  return (
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  return ( <>
     <div className="glass-panel rounded-3xl transition-all duration-200">
       <div className="p-5">
         <div className="flex items-center gap-3 mb-5">
@@ -22,6 +26,7 @@ function RecentSessions({ sessions, isLoading }) {
             sessions.map((session) => (
               <div
                 key={session._id}
+                onClick={() => { setSelectedSession(session); setModalOpen(true); }}
                 className={`relative bg-white/5 border ${session.status === "active"
                     ? "border-success/20 hover:border-success/40 bg-success/5"
                     : "border-white/5 hover:border-primary/20 hover:bg-white/10"
@@ -95,7 +100,19 @@ function RecentSessions({ sessions, isLoading }) {
         </div>
       </div>
     </div>
-  );
+    {modalOpen && selectedSession ? (
+        <PastSessionModal
+          isOpen={modalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedSession(null);
+          }}
+          session={selectedSession}
+        />
+      ) : null}
+
+    
+  </> );
 }
 
 export default RecentSessions;

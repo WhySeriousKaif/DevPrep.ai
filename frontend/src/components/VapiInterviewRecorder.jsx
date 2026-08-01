@@ -11,6 +11,12 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
   const [transcript, setTranscript] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
   
+  // Guards against duplicate concurrent starts — React StrictMode double-
+  // invokes effects in dev, and isConnected/isRecording only flip true at the
+  // END of the async startInterview(), so without this a second overlapping
+  // call to vapi.start() races the first (and can make both fail).
+  const hasStartedRef = useRef(false);
+
   const vapiConnectionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -113,10 +119,12 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
   }, [isConnected, interviewId]);
 
   const startInterview = async () => {
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
     try {
       // console.log("[VapiInterviewRecorder] Starting interview:", interviewId);
       // console.log("[VapiInterviewRecorder] Current interview:", interview);
-      
+
       // Start the interview session
       let response;
       try {
@@ -134,38 +142,38 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
         throw new Error(errorMsg);
       }
 
-      // Get assistantId from backend or environment (simplified like DentWise)
+      // Always fetch assistantId + assistantOverrides from the backend —
+      // assistantOverrides carries the per-interview system prompt/first
+      // message (role, experience, topics, question count) computed from
+      // this interview's own data. Without it, the call would just run on
+      // the assistant's static dashboard config with no customization at all.
       let assistantId = null;
-      
-      // First try environment variable (fastest, like DentWise)
-      assistantId = import.meta.env.VITE_VAPI_ASSISTANT_ID || null;
-      if (assistantId) {
-        // console.log("[VapiInterviewRecorder] ✅ Using assistantId from environment:", assistantId);
-      } else {
-        // Fallback to backend if env var not set
-        try {
-          // console.log("[VapiInterviewRecorder] Fetching VAPI assistant ID from backend");
-          const vapiResponse = await interviewApi.getVapiConnection(interviewId);
-          if (vapiResponse.success && vapiResponse.assistantId) {
-            assistantId = vapiResponse.assistantId;
-            // console.log("[VapiInterviewRecorder] ✅ Got assistantId from backend:", assistantId);
-          } else {
-            // console.warn("[VapiInterviewRecorder] No assistantId in backend response");
-          }
-        } catch (error) {
-          // console.warn("[VapiInterviewRecorder] Failed to get assistantId from backend:", error);
-          // console.warn("[VapiInterviewRecorder] Error details:", error.response?.data || error.message);
-          // This is OK - we can proceed without VAPI if needed
+      let assistantOverrides = null;
+
+      try {
+        const vapiResponse = await interviewApi.getVapiConnection(interviewId);
+        if (vapiResponse.success) {
+          assistantId = vapiResponse.assistantId || null;
+          assistantOverrides = vapiResponse.assistantOverrides || null;
         }
+      } catch (error) {
+        // console.warn("[VapiInterviewRecorder] Failed to get VAPI connection from backend:", error);
+        // Fall back to the env var below if this failed entirely.
       }
 
-      // Connect to VAPI WebRTC using assistantId (simplified like DentWise: vapi.start(assistantId))
+      // Fallback to the env var only if the backend didn't return an assistantId
+      if (!assistantId) {
+        assistantId = import.meta.env.VITE_VAPI_ASSISTANT_ID || null;
+      }
+
+      // Connect to VAPI WebRTC using assistantId + the per-interview overrides
       if (assistantId) {
         try {
           // console.log("[VapiInterviewRecorder] Connecting to VAPI with assistantId:", assistantId);
-          
+
           const connection = await connectToVapiCall(
             assistantId,
+            assistantOverrides,
             // Handle incoming VAPI audio stream
             (audioStream) => {
               // console.log("[VapiInterviewRecorder] VAPI audio stream received:", audioStream);

@@ -2,14 +2,30 @@ import mongoose from "mongoose";
 
 const sessionSchema = new mongoose.Schema(
   {
-    problem: {
+    title: {
       type: String,
+      default: "Technical Interview",
+    },
+    role: {
+      type: String,
+      default: "Software Engineer",
+    },
+    duration: {
+      type: Number,
+      default: 60, // in minutes
+    },
+    questions: {
+      type: [String], // Array of problem IDs
       required: true,
+    },
+    activeQuestionIndex: {
+      type: Number,
+      default: 0,
     },
     difficulty: {
       type: String,
-      enum: ["easy", "medium", "hard"],
-      required: true,
+      enum: ["easy", "medium", "hard", "mixed"],
+      default: "mixed",
     },
     host: {
       type: mongoose.Schema.Types.ObjectId,
@@ -23,8 +39,12 @@ const sessionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "completed"],
-      default: "active",
+      enum: ["pending", "active", "completed"],
+      default: "pending",
+    },
+    startTime: {
+      type: Date,
+      default: null,
     },
     // stream video call ID
     callId: {

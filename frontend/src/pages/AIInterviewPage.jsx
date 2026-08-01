@@ -14,6 +14,7 @@ function AIInterviewPage() {
     interviewType: "technical",
     topicsToFocus: "",
     description: "",
+    questionCount: 8,
   });
 
   const handleInputChange = (e) => {
@@ -40,12 +41,17 @@ function AIInterviewPage() {
         .map((topic) => topic.trim())
         .filter((topic) => topic.length > 0);
 
+      const parsedExperience = parseInt(formData.experience, 10);
+
       const interviewData = {
         role: formData.role,
-        experience: parseInt(formData.experience) || 1,
+        // `|| 1` here would silently turn a genuine "0 years" into "1 years"
+        // since 0 is falsy in JS — only fall back for a truly invalid/non-numeric input.
+        experience: Number.isNaN(parsedExperience) ? 1 : parsedExperience,
         interviewType: formData.interviewType,
         topicsToFocus: topicsArray,
         description: formData.description,
+        questionCount: formData.questionCount,
       };
 
       const response = await interviewApi.createInterview(interviewData);
@@ -159,6 +165,29 @@ function AIInterviewPage() {
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
                   <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
+              </div>
+            </div>
+
+            {/* Number of Questions */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-white ml-1">
+                Number of Questions
+              </label>
+              <div className="flex gap-2">
+                {[5, 8, 12].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, questionCount: n }))}
+                    className={`flex-1 py-3 rounded-xl border text-sm font-semibold transition-all ${
+                      formData.questionCount === n
+                        ? "bg-primary text-white border-primary"
+                        : "border-white/10 text-white/60 hover:bg-white/5"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
               </div>
             </div>
 
