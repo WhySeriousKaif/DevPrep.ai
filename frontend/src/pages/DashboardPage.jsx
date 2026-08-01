@@ -6,7 +6,7 @@ import {
   useCreateSession,
   useMyRecentSessions,
 } from "../hooks/useSessions";
-import { PlusIcon, UsersIcon, TrophyIcon } from "lucide-react";
+import { PlusIcon, UsersIcon, TrophyIcon, ZapIcon } from "lucide-react";
 
 import { PageShell, PageHeader, Panel } from "../components/layout/PageShell";
 import WelcomeSection from "../components/WelcomeSection";
@@ -84,63 +84,94 @@ function DashboardPage() {
           }
         />
 
-        {/* Top strip: welcome + inline stats + profile */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5">
-          <Panel className="lg:col-span-4 flex items-center px-6 py-6 min-h-[170px]">
-            <WelcomeSection />
+        {/* ── Top strip: Welcome (wide) + stacked stat cards + profile ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-4">
+
+          {/* Welcome card — spans 5 cols, taller to show personality */}
+          <Panel className="lg:col-span-5 flex items-center px-7 py-7 min-h-[160px]">
+            <div className="flex items-center gap-5 w-full">
+              <img
+                src={user?.imageUrl}
+                alt=""
+                className="size-14 rounded-2xl object-cover border border-white/10 shrink-0"
+              />
+              <WelcomeSection />
+            </div>
           </Panel>
 
-          <Panel className="lg:col-span-4 flex flex-col sm:flex-row items-center justify-around gap-5 px-6 py-6 min-h-[170px]">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 text-primary mb-2">
-                <UsersIcon className="size-4" />
-                <span className="text-3xl sm:text-4xl font-black text-white">
+          {/* Two stat cards stacked vertically — spans 4 cols */}
+          <div className="lg:col-span-4 flex flex-col gap-4">
+            {/* Active Sessions stat */}
+            <Panel className="flex items-center gap-4 px-6 py-4 flex-1">
+              <div className="rounded-2xl bg-primary/10 p-3 shrink-0">
+                <ZapIcon className="size-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-2xl font-black text-white leading-none">
                   {activeSessions.length}
-                </span>
+                </p>
+                <p className="text-xs uppercase tracking-widest text-base-content/50 mt-1">
+                  Active Sessions
+                </p>
               </div>
-              <p className="text-sm uppercase tracking-wider text-base-content/50">
-                Active
-              </p>
-            </div>
-            <div className="w-px h-12 bg-white/10 hidden sm:block" />
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 text-secondary mb-2">
-                <TrophyIcon className="size-4" />
-                <span className="text-3xl sm:text-4xl font-black text-white">
-                  {recentSessions.length}
-                </span>
-              </div>
-              <p className="text-sm uppercase tracking-wider text-base-content/50">
-                Total
-              </p>
-            </div>
-          </Panel>
+            </Panel>
 
-          <Panel className="lg:col-span-4 flex items-center gap-4 px-6 py-6">
-            <img
-              src={user?.imageUrl}
-              alt=""
-              className="size-10 rounded-2xl object-cover border border-white/10"
-            />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
+            {/* Total Sessions stat */}
+            <Panel className="flex items-center gap-4 px-6 py-4 flex-1">
+              <div className="rounded-2xl bg-secondary/10 p-3 shrink-0">
+                <TrophyIcon className="size-5 text-secondary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-2xl font-black text-white leading-none">
+                  {recentSessions.length}
+                </p>
+                <p className="text-xs uppercase tracking-widest text-base-content/50 mt-1">
+                  Total Sessions
+                </p>
+              </div>
+            </Panel>
+          </div>
+
+          {/* Profile card — spans 3 cols */}
+          <Panel className="lg:col-span-3 flex flex-col justify-center gap-3 px-6 py-6">
+            <div className="flex items-center gap-3">
+              <div className="size-2 rounded-full bg-success animate-pulse shrink-0" />
+              <span className="text-xs text-success font-semibold uppercase tracking-widest">
+                Online
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white truncate">
                 {user?.fullName}
               </p>
-              <p className="text-[11px] text-base-content/50">Welcome back</p>
+              <p className="text-xs text-base-content/50 truncate mt-0.5">
+                {user?.primaryEmailAddress?.emailAddress}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <UsersIcon className="size-3.5 text-base-content/30" />
+              <span className="text-[11px] text-base-content/40">
+                {activeSessions.length > 0
+                  ? `In ${activeSessions.length} live session${activeSessions.length > 1 ? "s" : ""}`
+                  : "Not in any session"}
+              </span>
             </div>
           </Panel>
         </div>
 
-        {/* Main: live sessions + recent */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-          <div className="xl:col-span-6 min-h-[420px]">
+        {/* ── Main content: Live Sessions (65%) + Past Sessions (35%) ── */}
+        <div className="grid grid-cols-1 xl:grid-cols-[65fr_35fr] gap-4">
+          {/* Live Sessions — wider, more prominent */}
+          <div className="min-h-[460px]">
             <ActiveSessions
               sessions={activeSessions}
               isLoading={loadingActiveSessions}
               isUserInSession={isUserInSession}
             />
           </div>
-          <div className="xl:col-span-6 min-h-[420px]">
+
+          {/* Past Sessions — compact cards */}
+          <div className="min-h-[460px]">
             <RecentSessions
               sessions={recentSessions}
               isLoading={loadingRecentSessions}

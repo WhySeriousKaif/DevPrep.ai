@@ -15,9 +15,10 @@ import {
   UsersIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import Navbar from "../components/Navbar";
+import { PageShell, PageHeader } from "../components/layout/PageShell";
 import ScoreRing from "../components/ScoreRing";
 import { resumeAnalyzerApi } from "../api/resumeAnalyzer";
+
 
 function ResumeAnalyzerPage() {
   const [loading, setLoading] = useState(true);
@@ -183,29 +184,23 @@ function ResumeAnalyzerPage() {
   };
 
   return (
-    <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-float" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-float-delayed" />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)",
-            backgroundSize: "4rem 4rem",
-            maskImage:
-              "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,0,0,1) 70%, transparent 100%)",
-          }}
-        />
-      </div>
-
-      <Navbar />
-
-      <div className="mx-auto px-4 md:px-6 py-10 relative z-10 max-w-[1100px]">
-        <div className="text-center mb-4">
-          <h1 className="text-3xl md:text-4xl font-black mb-0 tracking-tight">Resume Analyzer</h1>
-          <p className="text-base text-base-content/60 max-w-2xl mx-auto">Upload your resume and get an ATS score built for tech roles — strengths, gaps, and what to fix.</p>
-        </div>
+    <PageShell className="max-w-[1100px] mx-auto">
+      <PageHeader
+        icon={<FileSearchIcon className="size-4 text-primary" />}
+        title="Resume Analyzer"
+        subtitle="Upload your resume and get an ATS score built for tech roles — strengths, gaps, and what to fix."
+        action={
+          data && !showUpload && (
+            <button
+              onClick={() => setShowUpload(true)}
+              className="btn btn-outline btn-sm rounded-lg gap-1.5 px-3 h-8 min-h-0 text-xs font-semibold border-white/10 text-white hover:bg-white/5"
+            >
+              <RefreshCwIcon className="size-3.5" />
+              Re-analyze
+            </button>
+          )
+        }
+      />
 
         {loading ? (
           <div className="flex justify-center py-20">
@@ -544,9 +539,8 @@ function ResumeAnalyzerPage() {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </PageShell>
   );
 }
 
-      export default ResumeAnalyzerPage;
+export default ResumeAnalyzerPage;

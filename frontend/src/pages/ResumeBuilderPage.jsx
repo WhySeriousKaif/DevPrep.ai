@@ -6,10 +6,11 @@ import {
   ArrowRightIcon,
   MessagesSquareIcon,
 } from "lucide-react";
-import Navbar from "../components/Navbar";
+import { PageShell, PageHeader } from "../components/layout/PageShell";
 import ResumeFormStep from "../components/ResumeFormStep";
 import ResumeGenerator from "../components/ResumeGenerator";
 import { initialResumeData, RESUME_STEPS } from "../data/resumeInitialData";
+
 
 function ResumeBuilderPage() {
   const RESUME_DRAFT_KEY = "devprep.resumeDraft";
@@ -50,25 +51,12 @@ function ResumeBuilderPage() {
   }, [currentStep]);
 
   return (
-    <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden">
-      {/* BACKGROUND BLOBS */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-float" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-float-delayed" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-      </div>
-
-      <Navbar />
-
-      <div className="mx-auto px-4 md:px-6 py-10 relative z-10 max-w-[960px]">
-        <div className="text-left mb-5">
-          <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
-            <span className="neon-text-primary text-white">Resume</span> Builder
-          </h1>
-          <p className="text-base text-base-content/70 max-w-3xl leading-relaxed">
-            Build a clean, ATS-friendly resume step by step — no design skills required.
-          </p>
-        </div>
+    <PageShell className="max-w-[960px] mx-auto">
+      <PageHeader
+        icon={<FileTextIcon className="size-4 text-primary" />}
+        title="Resume Builder"
+        subtitle="Build a clean, ATS-friendly resume step by step — no design skills required."
+      />
 
         {showPreview ? (
           <ResumeGenerator
@@ -151,8 +139,7 @@ function ResumeBuilderPage() {
             </div>
           </>
         )}
-      </div>
-    </div>
+    </PageShell>
   );
 }
 

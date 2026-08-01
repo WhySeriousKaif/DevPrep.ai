@@ -18,13 +18,13 @@ function RecentSessions({ sessions, isLoading }) {
           </h2>
         </div>
 
-        <div className="p-5">
+        <div className="p-4">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader className="size-5 animate-spin text-primary" />
             </div>
           ) : sessions.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-2.5">
               {sessions.map((session) => (
                 <button
                   key={session._id}
@@ -33,20 +33,20 @@ function RecentSessions({ sessions, isLoading }) {
                     setSelectedSession(session);
                     setModalOpen(true);
                   }}
-                  className="text-left p-5 rounded-3xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-white/10 transition-colors min-h-[170px]"
+                  className="text-left p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-white/10 transition-colors w-full"
                 >
-                  <div className="flex items-start gap-4 mb-3">
-                    <Code2 className="size-6 text-primary shrink-0 mt-0.5" />
-                    <p className="text-base sm:text-lg font-semibold text-white truncate flex-1">
+                  <div className="flex items-start gap-3 mb-2">
+                    <Code2 className="size-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-sm font-semibold text-white truncate flex-1">
                       {session.problem}
                     </p>
                     <span
-                      className={`badge badge-md border-0 shrink-0 ${getDifficultyBadgeClass(session.difficulty)}`}
+                      className={`badge badge-sm border-0 shrink-0 ${getDifficultyBadgeClass(session.difficulty)}`}
                     >
                       {session.difficulty}
                     </span>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4 text-sm sm:text-base text-base-content/60 pl-5">
+                  <div className="flex items-center gap-3 text-[11px] text-base-content/50 pl-7">
                     <span className="flex items-center gap-1">
                       <Clock className="size-2.5" />
                       {formatDistanceToNow(new Date(session.createdAt), {
@@ -55,7 +55,7 @@ function RecentSessions({ sessions, isLoading }) {
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="size-2.5" />
-                      {session.participant ? 2 : 1}
+                      {session.participant ? 2 : 1} player{session.participant ? "s" : ""}
                     </span>
                   </div>
                 </button>

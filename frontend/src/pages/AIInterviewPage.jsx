@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { MicIcon, SparklesIcon } from "lucide-react";
-import Navbar from "../components/Navbar";
+import { PageShell, PageHeader } from "../components/layout/PageShell";
 import { interviewApi } from "../api/interview";
 import toast from "react-hot-toast";
+
 
 function AIInterviewPage() {
   const navigate = useNavigate();
@@ -94,28 +95,15 @@ function AIInterviewPage() {
   };
 
   return (
-    <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden">
-      {/* BACKGROUND BLOBS */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-float" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-float-delayed" />
-        {/* Background Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-      </div>
+    <PageShell className="max-w-[1100px] mx-auto">
+      <PageHeader
+        icon={<MicIcon className="size-4 text-primary" />}
+        title="AI Interview Assistant"
+        subtitle="Prepare for your next interview with our intelligent AI interviewer. Get real-time feedback and detailed performance analytics."
+      />
 
-      <Navbar />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-      <div className="mx-auto px-4 md:px-6 py-8 relative z-10 max-w-[1100px]">
-        {/* Header */}
-        <div className="text-center mb-5">
-          <h1 className="text-3xl md:text-4xl font-black mb-0 tracking-tight">AI Interview Assistant</h1>
-          <p className="text-lg text-base-content/70 max-w-3xl mx-auto leading-relaxed">
-            Prepare for your next interview with our intelligent AI interviewer.
-            Get real-time feedback and detailed performance analytics.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="space-y-6 w-full">
             {/* Interview Setup Form */}
             <div className="glass-panel rounded-3xl p-4 md:p-5 relative overflow-hidden border-white/5 shadow-2xl min-h-[640px]">
@@ -442,9 +430,8 @@ function AIInterviewPage() {
               </div>
             )}
           </div>
-        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 
