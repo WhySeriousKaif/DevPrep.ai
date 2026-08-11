@@ -12,8 +12,8 @@ import { getDifficultyBadgeClass } from "../lib/utils";
 
 function ActiveSessions({ sessions, isLoading, isUserInSession }) {
   return (
-    <div className="glass-panel rounded-3xl h-full flex flex-col overflow-hidden border border-white/5 min-h-[360px]">
-      <div className="px-5 py-5 flex items-center justify-between border-b border-white/5">
+    <div className="glass-panel rounded-3xl h-full flex flex-col overflow-hidden border border-white/5">
+      <div className="px-5 py-5 flex items-center justify-between border-b border-white/5 shrink-0">
         <div className="flex items-center gap-4">
           <ZapIcon className="size-5 text-primary" />
           <h2 className="text-base sm:text-lg font-bold text-white uppercase tracking-wide">
@@ -25,13 +25,18 @@ function ActiveSessions({ sessions, isLoading, isUserInSession }) {
         </span>
       </div>
 
-      <div className="space-y-4 overflow-y-auto p-5 flex-1 max-h-[520px]">
+      <div className="space-y-4 overflow-y-auto p-5 flex-1 custom-scrollbar">
         {isLoading ? (
           <div className="flex justify-center py-10">
             <LoaderIcon className="size-6 animate-spin text-primary" />
           </div>
         ) : sessions.length > 0 ? (
-          sessions.map((session) => (
+          sessions.map((session) => {
+            const questions = session.questionDetails || [];
+            const primaryTitle = questions[0]?.title || session.title || "Coding Interview";
+            const extraCount = questions.length - 1;
+
+            return (
             <div
               key={session._id}
               className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-white/5 border border-white/5 hover:border-primary/30 transition-colors"
@@ -40,7 +45,10 @@ function ActiveSessions({ sessions, isLoading, isUserInSession }) {
                 <Code2Icon className="size-4 text-primary shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-white truncate">
-                    {session.problem}
+                    {primaryTitle}
+                    {extraCount > 0 && (
+                      <span className="text-base-content/40 font-normal"> +{extraCount} more</span>
+                    )}
                   </p>
                   <div className="flex items-center gap-2 text-[10px] text-base-content/50">
                     <span className="flex items-center gap-0.5">
@@ -74,7 +82,8 @@ function ActiveSessions({ sessions, isLoading, isUserInSession }) {
                 </Link>
               )}
             </div>
-          ))
+            );
+          })
         ) : (
           <div className="text-center py-8">
             <SparklesIcon className="size-5 text-primary/40 mx-auto mb-2" />

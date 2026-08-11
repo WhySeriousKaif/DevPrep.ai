@@ -162,7 +162,7 @@ function DashboardPage() {
         {/* ── Main content: Live Sessions (65%) + Past Sessions (35%) ── */}
         <div className="grid grid-cols-1 xl:grid-cols-[65fr_35fr] gap-4">
           {/* Live Sessions — wider, more prominent */}
-          <div className="min-h-[460px]">
+          <div className="h-[420px]">
             <ActiveSessions
               sessions={activeSessions}
               isLoading={loadingActiveSessions}
@@ -170,8 +170,8 @@ function DashboardPage() {
             />
           </div>
 
-          {/* Past Sessions — compact cards */}
-          <div className="min-h-[460px]">
+          {/* Past Sessions — compact cards, fixed height, scrolls internally */}
+          <div className="h-[420px]">
             <RecentSessions
               sessions={recentSessions}
               isLoading={loadingRecentSessions}

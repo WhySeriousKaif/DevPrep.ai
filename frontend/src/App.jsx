@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router";
 import HomePage from "./pages/HomePage";
 import { useEffect } from "react";
 import { setupAxiosInterceptors } from "./lib/axios";
+import AppLoader from "./components/AppLoader";
 
 import { Toaster } from "react-hot-toast";
 import DashboardPage from "./pages/DashboardPage";
@@ -25,8 +26,8 @@ function App() {
     setupAxiosInterceptors(getToken);
   }, [getToken]);
 
-  // this will get rid of the flickering effect
-  if (!isLoaded) return null;
+  // show a branded loader instead of a blank page while Clerk resolves auth state
+  if (!isLoaded) return <AppLoader />;
 
   return (
     <>

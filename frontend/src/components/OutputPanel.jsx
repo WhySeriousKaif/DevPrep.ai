@@ -1,11 +1,23 @@
-import { TerminalIcon, AlertTriangleIcon, CheckCircleIcon } from "lucide-react";
+import { TerminalIcon, AlertTriangleIcon, CheckCircleIcon, Maximize2Icon, Minimize2Icon } from "lucide-react";
 
-function OutputPanel({ output, expectedOutput }) {
+function OutputPanel({ output, expectedOutput, isMaximized, onToggleMaximize }) {
   return (
     <div className="h-full bg-base-100/50 backdrop-blur-md flex flex-col">
-      <div className="px-4 py-3 border-b border-white/5 bg-white/5 flex items-center gap-2">
-        <TerminalIcon className="size-4 text-base-content/50" />
-        <span className="font-semibold text-sm text-base-content/70">Console Output</span>
+      <div className="px-4 py-3 border-b border-white/5 bg-white/5 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <TerminalIcon className="size-4 text-base-content/50" />
+          <span className="font-semibold text-sm text-base-content/70">Console Output</span>
+        </div>
+
+        {onToggleMaximize && (
+          <button
+            onClick={onToggleMaximize}
+            title={isMaximized ? "Restore layout" : "Maximize console"}
+            className="btn btn-ghost btn-sm btn-square text-base-content/50 hover:text-primary hover:bg-primary/10"
+          >
+            {isMaximized ? <Minimize2Icon className="size-4" /> : <Maximize2Icon className="size-4" />}
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-auto p-4 custom-scrollbar font-mono text-sm">

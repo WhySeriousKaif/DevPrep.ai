@@ -29,6 +29,11 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
   const recognitionRef = useRef(null);
   const userTranscriptRef = useRef("");
   const vapiTranscriptRef = useRef("");
+  const isRecordingRef = useRef(false);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
 
   useEffect(() => {
     // Initialize Speech Recognition
@@ -73,7 +78,7 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
 
       recognitionRef.current.onend = () => {
         // Auto-restart if still recording
-        if (isRecording && recognitionRef.current) {
+        if (isRecordingRef.current && recognitionRef.current) {
           try {
             recognitionRef.current.start();
           } catch (e) {
@@ -88,11 +93,18 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
     }
 
     return () => {
-      if (recognitionRef.current && isRecording) {
-        recognitionRef.current.stop();
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Not started, ignore
+        }
       }
     };
-  }, [isRecording]);
+    // Create the recognition instance once on mount — recreating it on every
+    // isRecording toggle orphaned the previous (still-running) instance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Poll for VAPI transcript updates from backend (webhook)
   useEffect(() => {
@@ -523,6 +535,15 @@ function VapiInterviewRecorder({ interview, interviewId, onComplete }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interview?.status]); // Only depend on status to avoid infinite loops
+
+  // Tear down the Vapi connection, media tracks, and audio context if the
+  // user navigates away mid-interview instead of clicking "stop".
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!isConnected && !isRecording) {
     return (

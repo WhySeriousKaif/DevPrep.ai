@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router";
 import { PhoneOffIcon, PhoneIcon, LoaderIcon, Play, Pause, SparklesIcon } from "lucide-react";
 import Navbar from "../components/Navbar";
+import { PageBackground } from "../components/layout/PageShell";
 import VapiInterviewRecorder from "../components/VapiInterviewRecorder";
 import { interviewApi } from "../api/interview";
 import toast from "react-hot-toast";
@@ -65,7 +66,8 @@ function InterviewSessionPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen relative overflow-hidden">
+        {PageBackground}
         <Navbar />
         <div className="container mx-auto px-4 py-12 flex items-center justify-center">
           <LoaderIcon className="size-8 animate-spin text-primary" />
@@ -76,7 +78,8 @@ function InterviewSessionPage() {
 
   if (!interview) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen relative overflow-hidden">
+        {PageBackground}
         <Navbar />
         <div className="container mx-auto px-4 py-12">
           <div className="glass-panel rounded-2xl p-8 text-center max-w-lg mx-auto">
@@ -94,7 +97,8 @@ function InterviewSessionPage() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden">
+      {PageBackground}
       <Navbar />
 
       <div className="container mx-auto px-4 md:px-6 py-12 max-w-5xl">

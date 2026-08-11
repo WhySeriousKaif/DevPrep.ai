@@ -10,22 +10,27 @@ function RecentSessions({ sessions, isLoading }) {
 
   return (
     <>
-      <div className="glass-panel rounded-3xl border border-white/5 h-full">
-        <div className="px-5 py-5 flex items-center gap-4 border-b border-white/5">
+      <div className="glass-panel rounded-3xl h-full flex flex-col overflow-hidden border border-white/5">
+        <div className="px-5 py-5 flex items-center gap-4 border-b border-white/5 shrink-0">
           <Clock className="size-5 text-accent" />
           <h2 className="text-base sm:text-lg font-bold text-white uppercase tracking-wide">
             Past Sessions
           </h2>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 flex-1 overflow-y-auto custom-scrollbar">
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader className="size-5 animate-spin text-primary" />
             </div>
           ) : sessions.length > 0 ? (
             <div className="flex flex-col gap-2.5">
-              {sessions.map((session) => (
+              {sessions.map((session) => {
+                const questions = session.questionDetails || [];
+                const primaryTitle = questions[0]?.title || session.title || "Coding Interview";
+                const extraCount = questions.length - 1;
+
+                return (
                 <button
                   key={session._id}
                   type="button"
@@ -38,7 +43,10 @@ function RecentSessions({ sessions, isLoading }) {
                   <div className="flex items-start gap-3 mb-2">
                     <Code2 className="size-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-sm font-semibold text-white truncate flex-1">
-                      {session.problem}
+                      {primaryTitle}
+                      {extraCount > 0 && (
+                        <span className="text-white/40 font-normal"> +{extraCount} more</span>
+                      )}
                     </p>
                     <span
                       className={`badge badge-sm border-0 shrink-0 ${getDifficultyBadgeClass(session.difficulty)}`}
@@ -59,7 +67,8 @@ function RecentSessions({ sessions, isLoading }) {
                     </span>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8">

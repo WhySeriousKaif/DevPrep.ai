@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Play, Pause, ArrowLeft, Trophy, AlertTriangle, TrendingUp, FileText, CheckCircle, SparklesIcon } from "lucide-react";
 import Navbar from "../components/Navbar";
+import { PageBackground } from "../components/layout/PageShell";
 import { interviewApi } from "../api/interview";
 import toast from "react-hot-toast";
 
@@ -87,7 +88,8 @@ function InterviewResultsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen relative overflow-hidden">
+        {PageBackground}
         <Navbar />
         <div className="container mx-auto px-4 py-12 flex items-center justify-center">
           <div className="loading loading-spinner loading-lg text-primary"></div>
@@ -98,7 +100,8 @@ function InterviewResultsPage() {
 
   if (!interview) {
     return (
-      <div className="min-h-screen">
+      <div className="min-h-screen relative overflow-hidden">
+        {PageBackground}
         <Navbar />
         <div className="container mx-auto px-4 py-12">
           <div className="glass-panel rounded-2xl p-8 text-center max-w-lg mx-auto">
@@ -116,7 +119,8 @@ function InterviewResultsPage() {
   const score = analysis.score || 0;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden">
+      {PageBackground}
       <Navbar />
 
       <div className="container mx-auto px-4 md:px-6 py-12 max-w-6xl">

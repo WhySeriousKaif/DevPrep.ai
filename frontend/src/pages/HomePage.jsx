@@ -14,7 +14,6 @@ import {
   UsersIcon,
   VideoIcon,
   ZapIcon,
-  TerminalIcon,
   MessageSquareIcon,
   ClockIcon,
   StarIcon,
@@ -22,15 +21,15 @@ import {
 import { SignInButton } from "@clerk/clerk-react";
 import { ResumeShowcaseSection } from "../components/landing/ResumeShowcaseSection";
 import { HoverBorderGradient } from "../components/ui/hover-border-gradient";
-import { TypewriterEffectSmooth } from "../components/ui/typewriter-effect";
+import { HeroShowcase } from "../components/landing/HeroShowcase";
 
 const FEATURE_PILLS = [
-  "Live Video Sessions",
-  "AI Voice Interviews",
-  "Blind 75 Tracker",
-  "Resume Builder",
-  "ATS Analyzer",
-  "Real-time Code Sync",
+  { label: "Live Video Sessions", icon: <VideoIcon className="size-3.5 text-secondary shrink-0" /> },
+  { label: "AI Voice Interviews", icon: <MicIcon className="size-3.5 text-secondary shrink-0" /> },
+  { label: "Blind 75 Tracker", icon: <ListChecksIcon className="size-3.5 text-secondary shrink-0" /> },
+  { label: "Resume Builder", icon: <FileTextIcon className="size-3.5 text-secondary shrink-0" /> },
+  { label: "ATS Analyzer", icon: <FileSearchIcon className="size-3.5 text-secondary shrink-0" /> },
+  { label: "Real-time Code Sync", icon: <Code2Icon className="size-3.5 text-secondary shrink-0" /> },
 ];
 
 const FEATURES = [
@@ -101,6 +100,43 @@ const HOW_IT_WORKS = [
   },
 ];
 
+const FOOTER_COLUMNS = [
+  {
+    title: "Product",
+    links: [
+      { label: "Live Coding Sessions", href: "#features" },
+      { label: "AI Voice Interviews", href: "#features" },
+      { label: "Blind 75 Tracker", href: "#features" },
+      { label: "Resume Tools", href: "#features" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { label: "How It Works", href: "#how-it-works" },
+      { label: "Blog", href: "#" },
+      { label: "Careers", href: "#" },
+      { label: "Contact", href: "#" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { label: "Privacy Policy", href: "#" },
+      { label: "Terms of Service", href: "#" },
+      { label: "Cookie Policy", href: "#" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "Sign Up", action: "signin" },
+      { label: "Log In", action: "signin" },
+      { label: "Dashboard", action: "signin" },
+    ],
+  },
+];
+
 function HomePage() {
   const scrollToFeatures = () => {
     document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
@@ -110,22 +146,28 @@ function HomePage() {
     document.getElementById("resume")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const scrollToHowItWorks = () => {
+    document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen selection:bg-primary selection:text-white overflow-hidden">
-      {/* BACKGROUND BLOBS */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[100px] animate-float" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-secondary/20 rounded-full blur-[100px] animate-float-delayed" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+      {/* BACKGROUND GRID + GLOW BLOBS */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:48px_48px]" />
+        <div className="absolute top-0 -left-4 size-96 bg-primary opacity-20 blur-[100px] animate-float" />
+        <div className="absolute bottom-0 -right-4 size-96 bg-secondary opacity-20 blur-[100px] animate-float-delayed" />
       </div>
 
       {/* NAVBAR */}
       <nav className="glass-panel sticky top-4 z-50 mx-auto max-w-7xl rounded-2xl my-4 border border-white/10">
         <div className="px-6 py-3 flex items-center justify-between">
           <Link to={"/"} className="flex items-center gap-3 group">
-            <div className="size-11 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg group-hover:shadow-primary/50 transition-all duration-300">
-              <SparklesIcon className="size-6 text-white group-hover:scale-110 transition-transform" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="DevPrep.ai"
+              className="size-11 rounded-xl shadow-lg group-hover:shadow-primary/50 group-hover:scale-110 transition-all duration-300"
+            />
             <div className="flex flex-col">
               <span className="font-black text-xl bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent tracking-wide">
                 DevPrep.ai
@@ -147,6 +189,12 @@ function HomePage() {
             >
               Features
             </button>
+            <button
+              onClick={scrollToHowItWorks}
+              className="btn btn-ghost btn-sm hidden sm:inline-flex"
+            >
+              How It Works
+            </button>
             <SignInButton mode="modal">
               <button className="btn btn-primary btn-sm rounded-xl px-6 neon-border">
                 <span>Login</span>
@@ -159,7 +207,7 @@ function HomePage() {
 
       {/* HERO SECTION */}
       <div className="max-w-7xl mx-auto px-4 py-12 lg:py-20 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-16 items-center">
           <div className="space-y-8 z-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-panel text-sm font-medium text-secondary animate-fade-in-up border border-white/5">
               <ZapIcon className="size-4 fill-current" />
@@ -173,20 +221,41 @@ function HomePage() {
               </span>
             </h1>
 
-            <p className="text-sm text-base-content/70 leading-relaxed max-w-xl glass-panel p-6 rounded-2xl border-l-4 border-primary border-y border-r border-white/5">
-              DevPrep.ai brings together live pair-programming sessions, AI voice mock
-              interviews, Blind 75 progress tracking, and resume tools — everything you
-              need to land your next role.
-            </p>
+            <div className="relative max-w-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/10 to-transparent rounded-2xl blur-xl -z-10" />
+              <div className="relative glass-panel p-6 rounded-2xl border border-white/10 overflow-hidden">
+                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-primary via-secondary to-accent" />
+                <span
+                  aria-hidden="true"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.08] leading-none select-none"
+                >
+                  {"{"}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-6xl font-black text-white/[0.08] leading-none select-none"
+                >
+                  {"}"}
+                </span>
+                <p className="relative text-sm text-base-content/75 leading-relaxed px-8">
+                  DevPrep.ai brings together{" "}
+                  <span className="text-base-content font-semibold">live pair-programming sessions</span>,{" "}
+                  <span className="text-base-content font-semibold">AI voice mock interviews</span>,{" "}
+                  <span className="text-base-content font-semibold">Blind 75 progress tracking</span>, and{" "}
+                  <span className="text-base-content font-semibold">resume tools</span> — everything you
+                  need to land your next role.
+                </p>
+              </div>
+            </div>
 
             <div className="flex flex-wrap gap-2">
-              {FEATURE_PILLS.map((feat) => (
+              {FEATURE_PILLS.map(({ label, icon }) => (
                 <div
-                  key={feat}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-base-100/50 rounded-lg border border-white/5 text-xs font-medium text-base-content/80"
+                  key={label}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-base-100/50 rounded-lg border border-white/5 text-xs font-medium text-base-content/80 hover:border-primary/30 hover:bg-base-100/70 transition-colors"
                 >
-                  <CheckIcon className="size-3.5 text-success shrink-0" />
-                  {feat}
+                  {icon}
+                  {label}
                 </div>
               ))}
             </div>
@@ -212,51 +281,11 @@ function HomePage() {
             </div>
           </div>
 
-          {/* Feature preview panel (replaces missing hero image) */}
+          {/* Hero showcase — auto-rotating live product preview */}
           <div className="relative perspective-1000 group">
             <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-secondary/30 rounded-3xl blur-2xl -z-10 group-hover:blur-3xl transition-all duration-500" />
 
-            <div className="glass-panel rounded-3xl border border-white/10 shadow-2xl p-6 space-y-4 animate-float">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="size-3 rounded-full bg-error/80" />
-                  <div className="size-3 rounded-full bg-warning/80" />
-                  <div className="size-3 rounded-full bg-success/80" />
-                </div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-base-content/40">
-                  DevPrep.ai
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: <VideoIcon className="size-5 text-primary" />, label: "Live Sessions", sub: "Pair coding + video" },
-                  { icon: <MicIcon className="size-5 text-secondary" />, label: "AI Interview", sub: "Voice mock rounds" },
-                  { icon: <ListChecksIcon className="size-5 text-accent" />, label: "Blind 75", sub: "Track progress" },
-                  { icon: <FileTextIcon className="size-5 text-primary" />, label: "Resume Tools", sub: "Build & analyze" },
-                ].map((item) => (
-                  <div key={item.label} className="glass-card p-4 rounded-xl border border-white/5">
-                    <div className="mb-2">{item.icon}</div>
-                    <div className="text-sm font-bold">{item.label}</div>
-                    <div className="text-[11px] text-base-content/50">{item.sub}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="glass-card p-4 rounded-xl border border-white/5 font-mono text-xs">
-                <div className="flex items-center gap-2 text-secondary mb-2">
-                  <TerminalIcon className="size-4" />
-                  <span>session.ts</span>
-                </div>
-                <div className="text-base-content/60 space-y-1">
-                  <p><span className="text-accent">const</span> interview = {"{"}</p>
-                  <p className="pl-4">video: <span className="text-success">true</span>,</p>
-                  <p className="pl-4">editor: <span className="text-success">"monaco"</span>,</p>
-                  <p className="pl-4">aiFeedback: <span className="text-success">true</span></p>
-                  <p>{"}"}</p>
-                </div>
-              </div>
-            </div>
+            <HeroShowcase />
 
             <div className="absolute -left-6 top-16 glass-card p-3 rounded-xl z-20 animate-float-delayed hidden lg:block border border-white/10">
               <MessageSquareIcon className="size-6 text-secondary" />
@@ -346,7 +375,7 @@ function HomePage() {
       </div>
 
       {/* HOW IT WORKS */}
-      <div className="max-w-7xl mx-auto px-4 py-24 relative">
+      <div id="how-it-works" className="max-w-7xl mx-auto px-4 py-24 relative scroll-mt-24">
         <div className="text-center mb-14">
           <h2 className="text-3xl lg:text-4xl font-black mb-4">
             How It <span className="text-secondary">Works</span>
@@ -398,36 +427,62 @@ function HomePage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="glass-panel mt-12 py-10 relative z-10 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col items-center gap-4 mb-6">
-            <TypewriterEffectSmooth
-              words={[
-                { text: "Build" },
-                { text: " · " },
-                { text: "Practice", className: "text-secondary" },
-                { text: " · " },
-                { text: "Analyze", className: "text-primary" },
-                { text: " · " },
-                { text: "Succeed", className: "text-accent" },
-              ]}
-            />
+      <footer className="glass-panel mt-12 relative z-10 border-t border-white/10 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 pt-14 pb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-6 gap-y-10">
+            <div className="col-span-2 sm:col-span-3 lg:col-span-2 space-y-4">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="DevPrep.ai" className="size-7 rounded-md" />
+                <span className="font-semibold text-base">DevPrep.ai</span>
+              </div>
+              <p className="text-sm text-base-content/50 leading-relaxed max-w-xs">
+                Your all-in-one platform for cracking technical interviews — live coding
+                sessions, AI voice interviews, Blind 75 tracking, and resume tools.
+              </p>
+              <p className="text-xs text-base-content/30">
+                &copy; 2026 DevPrep.ai. All rights reserved.
+              </p>
+            </div>
+
+            {FOOTER_COLUMNS.map((column) => (
+              <div key={column.title}>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-4">
+                  {column.title}
+                </h4>
+                <ul className="space-y-2.5">
+                  {column.links.map((link) =>
+                    link.action === "signin" ? (
+                      <li key={link.label}>
+                        <SignInButton mode="modal">
+                          <button className="text-sm text-base-content/60 hover:text-primary transition-colors">
+                            {link.label}
+                          </button>
+                        </SignInButton>
+                      </li>
+                    ) : (
+                      <li key={link.label}>
+                        <a
+                          href={link.href}
+                          className="text-sm text-base-content/60 hover:text-primary transition-colors"
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+            ))}
           </div>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-base-content/60">
-            <SparklesIcon className="size-4 text-primary" />
-            <span className="font-semibold">DevPrep.ai</span>
-            <span className="text-base-content/30 hidden sm:inline">· Code Together</span>
-          </div>
-          <p className="text-sm text-base-content/40">
-            &copy; 2026 DevPrep.ai. All rights reserved.
-          </p>
-          <div className="flex gap-6 text-sm text-base-content/40">
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact</a>
-          </div>
-          </div>
+        </div>
+
+        {/* Oversized watermark */}
+        <div
+          aria-hidden="true"
+          className="select-none pointer-events-none text-center font-black leading-[0.8] whitespace-nowrap bg-gradient-to-b from-white/[0.07] to-white/0 bg-clip-text text-transparent -mb-2 sm:-mb-4 lg:-mb-8"
+          style={{ fontSize: "clamp(3rem, 16vw, 13rem)" }}
+        >
+          DevPrep.ai
         </div>
       </footer>
     </div>

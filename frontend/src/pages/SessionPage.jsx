@@ -4,10 +4,18 @@ import { useNavigate, useParams } from "react-router";
 import { useEndSession, useJoinSession, useSessionById, useStartSession } from "../hooks/useSessions";
 import { useProblemById, useAllProblems } from "../hooks/useProblems";
 import { executeCode } from "../lib/piston";
-import Navbar from "../components/Navbar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { getDifficultyBadgeClass } from "../lib/utils";
-import { Loader2Icon, LogOutIcon, PhoneOffIcon, PlayIcon, CheckCircle2Icon } from "lucide-react";
+import {
+  Loader2Icon,
+  LogOutIcon,
+  PhoneOffIcon,
+  PlayIcon,
+  CheckCircle2Icon,
+  ArrowLeftIcon,
+  Maximize2Icon,
+  Minimize2Icon,
+} from "lucide-react";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 import OutputPanel from "../components/OutputPanel";
 
@@ -38,6 +46,10 @@ function SessionPage() {
     isHost,
     isParticipant
   );
+
+  // Which panel (if any) is expanded to fill the whole workspace: "problem" | "video" | "editor" | "output"
+  const [maximized, setMaximized] = useState(null);
+  const toggleMaximize = (key) => setMaximized((prev) => (prev === key ? null : key));
 
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const activeProblemId = session?.questions?.[activeQuestionIndex];
@@ -242,15 +254,159 @@ function SessionPage() {
     startSessionMutation.mutate(id, { onSuccess: refetch });
   };
 
+  const renderProblemPanel = () => (
+    <div className="h-full flex flex-col bg-base-200">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-base-300 bg-base-300/40">
+        <span className="text-xs font-bold uppercase tracking-wide text-base-content/50">Question</span>
+        <button
+          onClick={() => toggleMaximize("problem")}
+          title={maximized === "problem" ? "Restore layout" : "Maximize question"}
+          className="btn btn-ghost btn-xs btn-square text-base-content/50 hover:text-primary hover:bg-primary/10"
+        >
+          {maximized === "problem" ? <Minimize2Icon className="size-3.5" /> : <Maximize2Icon className="size-3.5" />}
+        </button>
+      </div>
+
+      {/* Question Tabs */}
+      {session?.questions?.length > 1 && (
+        <div className="flex overflow-x-auto bg-base-300 custom-scrollbar border-b border-base-100">
+          {session.questions.map((qId, idx) => {
+            const title = allProblemsData?.problems?.find(p => p.id === qId)?.title || `Question ${idx + 1}`;
+            return (
+              <button
+                key={idx}
+                onClick={() => isHost && handleChangeQuestion(idx)}
+                className={`px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
+                  activeQuestionIndex === idx
+                    ? "border-primary text-primary bg-base-200"
+                    : "border-transparent text-base-content/50 hover:bg-base-200/50"
+                } ${!isHost && activeQuestionIndex !== idx ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={!isHost && activeQuestionIndex !== idx}
+              >
+                {title}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {problemData ? (
+          <>
+            <div className="flex items-start justify-between mb-2">
+              <h2 className="text-2xl font-bold text-base-content">{problemData.title}</h2>
+              <span className={`badge ${getDifficultyBadgeClass(problemData.difficulty)}`}>
+                {problemData.difficulty}
+              </span>
+            </div>
+
+            <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+              <div className="space-y-3 text-base leading-relaxed">
+                <p className="text-base-content/90">{problemData.description?.text}</p>
+                {problemData.description?.notes?.map((note, idx) => (
+                  <p key={idx} className="text-base-content/90 font-medium bg-warning/10 p-2 rounded text-warning">
+                    Note: {note}
+                  </p>
+                ))}
+              </div>
+            </div>
+
+            {problemData.examples?.length > 0 && (
+              <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300 space-y-4">
+                <h3 className="text-lg font-bold text-base-content">Examples</h3>
+                {problemData.examples.map((example, idx) => (
+                  <div key={idx} className="bg-base-200 rounded-lg p-4 font-mono text-sm space-y-1.5">
+                    <div className="flex gap-2">
+                      <span className="text-primary font-bold min-w-[70px]">Input:</span>
+                      <span>{example.input}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-secondary font-bold min-w-[70px]">Output:</span>
+                      <span>{example.output}</span>
+                    </div>
+                    {example.explanation && (
+                      <div className="pt-2 border-t border-base-300 mt-2 text-base-content/60 font-sans text-xs">
+                        <span className="font-semibold">Explanation:</span> {example.explanation}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {problemData.constraints?.length > 0 && (
+              <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+                <h3 className="text-lg font-bold mb-3 text-base-content">Constraints</h3>
+                <ul className="space-y-1 text-base-content/90">
+                  {problemData.constraints.map((constraint, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className="text-primary">•</span>
+                      <code className="text-sm bg-base-200 px-1.5 rounded">{constraint}</code>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex justify-center items-center h-full"><Loader2Icon className="animate-spin text-primary opacity-50" /></div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderVideoPanel = () => (
+    <div className="h-full bg-base-200 p-4 overflow-hidden flex flex-col border-t border-base-300 relative">
+      <button
+        onClick={() => toggleMaximize("video")}
+        title={maximized === "video" ? "Restore layout" : "Maximize video"}
+        className="absolute top-3 right-3 z-10 btn btn-ghost btn-xs btn-square bg-base-100/60 text-base-content/60 hover:text-primary hover:bg-primary/10"
+      >
+        {maximized === "video" ? <Minimize2Icon className="size-3.5" /> : <Maximize2Icon className="size-3.5" />}
+      </button>
+
+      {isInitializingCall ? (
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center">
+            <Loader2Icon className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
+            <p className="text-lg">Connecting to video call...</p>
+          </div>
+        </div>
+      ) : !streamClient || !call ? (
+        <div className="h-full flex items-center justify-center">
+          <div className="card bg-base-100 shadow-xl max-w-md">
+            <div className="card-body items-center text-center">
+              <PhoneOffIcon className="w-12 h-12 text-error mb-2" />
+              <h2 className="card-title">Connection Failed</h2>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="h-full rounded-xl overflow-hidden shadow-lg border border-base-300">
+          <StreamVideo client={streamClient}>
+            <StreamCall call={call}>
+              <VideoCallUI chatClient={chatClient} channel={channel} />
+            </StreamCall>
+          </StreamVideo>
+        </div>
+      )}
+    </div>
+  );
+
   if (loadingSession) return <div className="h-screen flex items-center justify-center bg-base-100"><Loader2Icon className="animate-spin text-primary size-8"/></div>;
 
   return (
     <div className="h-screen bg-base-100 flex flex-col">
-      <Navbar />
-
       {/* Session Header */}
       <div className="bg-base-200 border-b border-base-300 px-6 py-3 flex items-center justify-between z-10">
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/dashboard")}
+            title="Back to dashboard"
+            className="btn btn-ghost btn-sm btn-square text-base-content/60 hover:text-primary hover:bg-primary/10"
+          >
+            <ArrowLeftIcon className="size-4" />
+          </button>
           <h1 className="text-xl font-bold text-base-content">{session?.title || "Coding Interview"}</h1>
           <span className="badge badge-primary">{session?.role}</span>
         </div>
@@ -296,163 +452,80 @@ function SessionPage() {
           </div>
         )}
 
-        <PanelGroup direction="horizontal">
-          {/* LEFT PANEL - PROBLEM & VIDEO */}
-          <Panel defaultSize={30} minSize={20} maxSize={50}>
-            <PanelGroup direction="vertical">
-              {/* PROBLEM DESCRIPTION */}
-              <Panel defaultSize={60} minSize={20}>
-                <div className="h-full flex flex-col bg-base-200">
-                  {/* Question Tabs */}
-                  {session?.questions?.length > 1 && (
-                    <div className="flex overflow-x-auto bg-base-300 custom-scrollbar border-b border-base-100">
-                      {session.questions.map((qId, idx) => {
-                        const title = allProblemsData?.problems?.find(p => p.id === qId)?.title || `Question ${idx + 1}`;
-                        return (
-                          <button
-                            key={idx}
-                            onClick={() => isHost && handleChangeQuestion(idx)}
-                            className={`px-4 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                              activeQuestionIndex === idx
-                                ? "border-primary text-primary bg-base-200"
-                                : "border-transparent text-base-content/50 hover:bg-base-200/50"
-                            } ${!isHost && activeQuestionIndex !== idx ? "opacity-50 cursor-not-allowed" : ""}`}
-                            disabled={!isHost && activeQuestionIndex !== idx}
-                          >
-                            {title}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
+        {maximized ? (
+          <div className="h-full">
+            {maximized === "problem" && renderProblemPanel()}
+            {maximized === "video" && renderVideoPanel()}
+            {maximized === "editor" && (
+              <CodeEditorPanel
+                selectedLanguage={selectedLanguage}
+                code={code}
+                isRunning={isRunning}
+                onLanguageChange={handleLanguageChange}
+                onCodeChange={handleCodeUpdate}
+                onRunCode={handleRunCode}
+                isMaximized
+                onToggleMaximize={() => toggleMaximize("editor")}
+              />
+            )}
+            {maximized === "output" && (
+              <OutputPanel
+                output={output}
+                expectedOutput={output?.expectedStr}
+                isMaximized
+                onToggleMaximize={() => toggleMaximize("output")}
+              />
+            )}
+          </div>
+        ) : (
+          <PanelGroup direction="horizontal">
+            {/* LEFT PANEL - PROBLEM & VIDEO */}
+            <Panel defaultSize={30} minSize={20} maxSize={50}>
+              <PanelGroup direction="vertical">
+                <Panel defaultSize={60} minSize={20}>
+                  {renderProblemPanel()}
+                </Panel>
 
-                  <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {problemData ? (
-                      <>
-                        <div className="flex items-start justify-between mb-2">
-                          <h2 className="text-2xl font-bold text-base-content">{problemData.title}</h2>
-                          <span className={`badge ${getDifficultyBadgeClass(problemData.difficulty)}`}>
-                            {problemData.difficulty}
-                          </span>
-                        </div>
-                        
-                        <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
-                          <div className="space-y-3 text-base leading-relaxed">
-                            <p className="text-base-content/90">{problemData.description?.text}</p>
-                            {problemData.description?.notes?.map((note, idx) => (
-                              <p key={idx} className="text-base-content/90 font-medium bg-warning/10 p-2 rounded text-warning">
-                                Note: {note}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
+                <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
 
-                        {problemData.examples?.length > 0 && (
-                          <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300 space-y-4">
-                            <h3 className="text-lg font-bold text-base-content">Examples</h3>
-                            {problemData.examples.map((example, idx) => (
-                              <div key={idx} className="bg-base-200 rounded-lg p-4 font-mono text-sm space-y-1.5">
-                                <div className="flex gap-2">
-                                  <span className="text-primary font-bold min-w-[70px]">Input:</span>
-                                  <span>{example.input}</span>
-                                </div>
-                                <div className="flex gap-2">
-                                  <span className="text-secondary font-bold min-w-[70px]">Output:</span>
-                                  <span>{example.output}</span>
-                                </div>
-                                {example.explanation && (
-                                  <div className="pt-2 border-t border-base-300 mt-2 text-base-content/60 font-sans text-xs">
-                                    <span className="font-semibold">Explanation:</span> {example.explanation}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        
-                        {problemData.constraints?.length > 0 && (
-                          <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
-                            <h3 className="text-lg font-bold mb-3 text-base-content">Constraints</h3>
-                            <ul className="space-y-1 text-base-content/90">
-                              {problemData.constraints.map((constraint, idx) => (
-                                <li key={idx} className="flex gap-2">
-                                  <span className="text-primary">•</span>
-                                  <code className="text-sm bg-base-200 px-1.5 rounded">{constraint}</code>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="flex justify-center items-center h-full"><Loader2Icon className="animate-spin text-primary opacity-50" /></div>
-                    )}
-                  </div>
-                </div>
-              </Panel>
+                <Panel defaultSize={40} minSize={20}>
+                  {renderVideoPanel()}
+                </Panel>
+              </PanelGroup>
+            </Panel>
 
-              <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
+            <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
 
-              {/* VIDEO CALL PANEL */}
-              <Panel defaultSize={40} minSize={20}>
-                <div className="h-full bg-base-200 p-4 overflow-hidden flex flex-col border-t border-base-300">
-                  {isInitializingCall ? (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center">
-                        <Loader2Icon className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
-                        <p className="text-lg">Connecting to video call...</p>
-                      </div>
-                    </div>
-                  ) : !streamClient || !call ? (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="card bg-base-100 shadow-xl max-w-md">
-                        <div className="card-body items-center text-center">
-                          <PhoneOffIcon className="w-12 h-12 text-error mb-2" />
-                          <h2 className="card-title">Connection Failed</h2>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="h-full rounded-xl overflow-hidden shadow-lg border border-base-300">
-                      <StreamVideo client={streamClient}>
-                        <StreamCall call={call}>
-                          <VideoCallUI chatClient={chatClient} channel={channel} />
-                        </StreamCall>
-                      </StreamVideo>
-                    </div>
-                  )}
-                </div>
-              </Panel>
-            </PanelGroup>
-          </Panel>
+            {/* RIGHT PANEL - CODE EDITOR */}
+            <Panel defaultSize={70} minSize={30}>
+              <PanelGroup direction="vertical">
+                <Panel defaultSize={70} minSize={30}>
+                  <CodeEditorPanel
+                    selectedLanguage={selectedLanguage}
+                    code={code}
+                    isRunning={isRunning}
+                    onLanguageChange={handleLanguageChange}
+                    onCodeChange={handleCodeUpdate}
+                    onRunCode={handleRunCode}
+                    isMaximized={false}
+                    onToggleMaximize={() => toggleMaximize("editor")}
+                  />
+                </Panel>
 
-          <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
+                <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
 
-          {/* RIGHT PANEL - CODE EDITOR */}
-          <Panel defaultSize={70} minSize={30}>
-            <PanelGroup direction="vertical">
-              <Panel defaultSize={70} minSize={30}>
-                <CodeEditorPanel
-                  selectedLanguage={selectedLanguage}
-                  code={code}
-                  isRunning={isRunning}
-                  onLanguageChange={handleLanguageChange}
-                  onCodeChange={handleCodeUpdate}
-                  onRunCode={handleRunCode}
-                />
-              </Panel>
-
-              <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
-
-              <Panel defaultSize={30} minSize={15}>
-                <OutputPanel
-                  output={output}
-                  expectedOutput={output?.expectedStr}
-                />
-              </Panel>
-            </PanelGroup>
-          </Panel>
-        </PanelGroup>
+                <Panel defaultSize={30} minSize={15}>
+                  <OutputPanel
+                    output={output}
+                    expectedOutput={output?.expectedStr}
+                    isMaximized={false}
+                    onToggleMaximize={() => toggleMaximize("output")}
+                  />
+                </Panel>
+              </PanelGroup>
+            </Panel>
+          </PanelGroup>
+        )}
       </div>
     </div>
   );

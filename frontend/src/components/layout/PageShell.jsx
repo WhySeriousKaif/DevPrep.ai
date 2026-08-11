@@ -1,18 +1,18 @@
 import Navbar from "../Navbar";
 import { cn } from "../../lib/utils";
 
-const BG = (
-  <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
-    <div className="absolute top-[-10%] left-[-10%] w-72 h-72 bg-primary/15 rounded-full blur-[80px] animate-float" />
-    <div className="absolute bottom-[-10%] right-[-10%] w-72 h-72 bg-secondary/15 rounded-full blur-[80px] animate-float-delayed" />
-    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[3rem_3rem] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+export const PageBackground = (
+  <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:48px_48px]" />
+    <div className="absolute top-0 -left-4 size-96 bg-primary opacity-20 blur-[100px] animate-float" />
+    <div className="absolute bottom-0 -right-4 size-96 bg-secondary opacity-20 blur-[100px] animate-float-delayed" />
   </div>
 );
 
 export function PageShell({ children, className }) {
   return (
     <div className="min-h-screen selection:bg-primary selection:text-white relative overflow-hidden">
-      {BG}
+      {PageBackground}
       <Navbar />
       <div
         className={cn(

@@ -1,5 +1,5 @@
 import Editor from "@monaco-editor/react";
-import { Loader2Icon, PlayIcon, SparklesIcon } from "lucide-react";
+import { Loader2Icon, PlayIcon, SparklesIcon, Maximize2Icon, Minimize2Icon } from "lucide-react";
 import { LANGUAGE_CONFIG } from "../data/problems";
 
 function CodeEditorPanel({
@@ -9,6 +9,8 @@ function CodeEditorPanel({
   onLanguageChange,
   onCodeChange,
   onRunCode,
+  isMaximized,
+  onToggleMaximize,
 }) {
   return (
     <div className="h-full bg-base-100/50 backdrop-blur-md flex flex-col">
@@ -34,23 +36,35 @@ function CodeEditorPanel({
           </select>
         </div>
 
-        <button
-          className="btn btn-primary btn-sm gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-all"
-          disabled={isRunning}
-          onClick={onRunCode}
-        >
-          {isRunning ? (
-            <>
-              <Loader2Icon className="size-4 animate-spin" />
-              Running...
-            </>
-          ) : (
-            <>
-              <PlayIcon className="size-4 fill-current" />
-              Run Code
-            </>
+        <div className="flex items-center gap-2">
+          <button
+            className="btn btn-primary btn-sm gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+            disabled={isRunning}
+            onClick={onRunCode}
+          >
+            {isRunning ? (
+              <>
+                <Loader2Icon className="size-4 animate-spin" />
+                Running...
+              </>
+            ) : (
+              <>
+                <PlayIcon className="size-4 fill-current" />
+                Run Code
+              </>
+            )}
+          </button>
+
+          {onToggleMaximize && (
+            <button
+              onClick={onToggleMaximize}
+              title={isMaximized ? "Restore layout" : "Maximize editor"}
+              className="btn btn-ghost btn-sm btn-square text-base-content/50 hover:text-primary hover:bg-primary/10"
+            >
+              {isMaximized ? <Minimize2Icon className="size-4" /> : <Maximize2Icon className="size-4" />}
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
       <div className="flex-1 relative group">

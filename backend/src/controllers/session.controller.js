@@ -1,5 +1,21 @@
 import { chatClient, streamClient } from "../libs/stream.js";
 import Session from "../models/session.model.js";
+import { CODING_PROBLEMS } from "../data/codingProblems.js";
+
+// session.questions only stores problem IDs — attach the actual title/difficulty
+// for each one so the dashboard and past-session summary don't have to guess.
+function withQuestionDetails(sessions) {
+  return sessions.map((session) => {
+    const plain = session.toObject ? session.toObject() : session;
+    const questionDetails = (plain.questions || []).map((id) => {
+      const problem = CODING_PROBLEMS.find((p) => p.id === id);
+      return problem
+        ? { id: problem.id, title: problem.title, difficulty: problem.difficulty }
+        : { id, title: "Unknown question", difficulty: plain.difficulty };
+    });
+    return { ...plain, questionDetails };
+  });
+}
 
 export async function createSession(req, res) {
   try {
@@ -72,7 +88,7 @@ export async function getActiveSessions(_, res) {
       .sort({ createdAt: -1 })
       .limit(20);
 
-    res.status(200).json({ sessions });
+    res.status(200).json({ sessions: withQuestionDetails(sessions) });
   } catch (error) {
     console.log("Error in getActiveSessions controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -91,7 +107,7 @@ export async function getMyRecentSessions(req, res) {
       .sort({ createdAt: -1 })
       .limit(20);
 
-    res.status(200).json({ sessions });
+    res.status(200).json({ sessions: withQuestionDetails(sessions) });
   } catch (error) {
     console.log("Error in getMyRecentSessions controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });

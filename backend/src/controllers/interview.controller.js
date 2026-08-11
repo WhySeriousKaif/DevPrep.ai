@@ -448,7 +448,7 @@ export const submitInterview = async (req, res) => {
       interview.recordingBlob = recordingBuffer;
     }
 
-    interview.status = "completed";
+    interview.status = "analyzing";
     await interview.save();
 
     // Start AI analysis in background
