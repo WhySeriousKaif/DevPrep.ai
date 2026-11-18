@@ -2,7 +2,7 @@ import { clerkClient, requireAuth } from "@clerk/express";
 import User from "../models/user.model.js";
 
 export const protectRoute = [
-  requireAuth(),
+  requireAuth(), //once user is authenticated it attaches the user object to the req object:req.auth()
   async (req, res, next) => {
     try {
       const clerkId = req.auth().userId;
